@@ -7,8 +7,8 @@ export type Config = {
   subdomains: Record<string, WorkspaceConfig>
 }
 export type WorkspaceConfig = {
-  publicHostServerUrl: string
-  subdomain: string
   options: StartOptions
+  publicHostServerHost: string
+  subdomain: string
   workspacePath: string
 }

@@ -6,21 +6,21 @@ import { DEFAULT_START_OPTIONS } from '../constants.js'
 import { config } from '../libs/Config.js'
 
 /**
- * @param {string} publicHostServerUrl
+ * @param {string} publicHostServerHost
  * @param {string} subdomain
  * @param {Partial<import('../types.ts').StartOptions>} options
  */
-export function start(publicHostServerUrl, subdomain, options) {
+export function start(publicHostServerHost, subdomain, options) {
   const controlledOptions = { ...options, ...DEFAULT_START_OPTIONS }
   const { isHttps, localhostAppPort } = controlledOptions
   const localhostAppBaseUrl = `http${isHttps ? 's' : ''}://localhost:${localhostAppPort}`
-  const ws = new WebSocket(`${publicHostServerUrl}/${subdomain}`)
+  const ws = new WebSocket(`wss://${publicHostServerHost}/${subdomain}`)
 
   ws.on('open', () => {
     B.log(
       '[PublicHost Client]',
       `[${subdomain}]`,
-      `Connected to PublicHost Server on "${publicHostServerUrl}".`,
+      `Connected to PublicHost Server on wss://${publicHostServerHost}.`,
       'Registering subdomain...',
     )
     ws.send(JSON.stringify({ type: WEBSOCKETS_CLIENT_MESSAGE_TYPE.REGISTER, subdomain }))
@@ -111,7 +111,7 @@ export function start(publicHostServerUrl, subdomain, options) {
 
     setTimeout(() => {
       B.log('[PublicHost Client]', `[${subdomain}]`, 'Reconnecting to PublicHost Server...')
-      start(publicHostServerUrl, subdomain, options)
+      start(publicHostServerHost, subdomain, options)
     }, 5000)
   })
 
@@ -130,7 +130,7 @@ export function startFromConfig() {
     return
   }
 
-  const { publicHostServerUrl, subdomain, options } = workspaceConfig
+  const { options, publicHostServerHost, subdomain } = workspaceConfig
 
-  start(publicHostServerUrl, subdomain, options)
+  start(publicHostServerHost, subdomain, options)
 }
