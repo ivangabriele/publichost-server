@@ -1,3 +1,14 @@
+## [1.0.3](https://github.com/ivangabriele/publichost/compare/v1.0.2...v1.0.3) (2024-08-16)
+
+### Bug Fixes
+
+- **client:** add missing wss scheme to server url ([335e681](https://github.com/ivangabriele/publichost/commit/335e6815242bcc3a3ecaa6ba84a8906869dab8c3))
+- keep connection alive via ping-pong events ([e1ac430](https://github.com/ivangabriele/publichost/commit/e1ac43037cb677a609c0a61b4678a668134ec6bd))
+
+### Build System
+
+- **npm:** clean bin path ([3daec12](https://github.com/ivangabriele/publichost/commit/3daec120fef982f842bccef601b5e58fca686ad1))
+
 ## [1.0.2](https://github.com/ivangabriele/publichost/compare/v1.0.1...v1.0.2) (2024-08-16)
 
 ### Bug Fixes

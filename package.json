@@ -2,7 +2,7 @@
   "name": "publichost-root",
   "description": "Make your localhost public. Tunnel HTTP and WebSocket traffic to your local machine from any domain name.",
   "license": "AGPL-3.0",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "private": true,
   "type": "module",
   "engines": {
