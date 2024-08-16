@@ -8,8 +8,8 @@
     "node": ">=20"
   },
   "bin": {
-    "ph": "./dist/cli.js",
-    "publichost": "./dist/cli.js"
+    "ph": "dist/cli.js",
+    "publichost": "dist/cli.js"
   },
   "exports": {
     ".": "./dist/index.js"
