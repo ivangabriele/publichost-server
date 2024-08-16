@@ -17,7 +17,8 @@
     "prepare": "husky",
     "start:client": "yarn workspace publichost start",
     "start:server": "yarn workspace publichost-server start",
-    "test:lint": "biome check --write --files-ignore-unknown=true --no-errors-on-unmatched ."
+    "test:lint": "biome check --write --files-ignore-unknown=true --no-errors-on-unmatched .",
+    "test:type": "tsc"
   },
   "devDependencies": {
     "@biomejs/biome": "1.8.3",
