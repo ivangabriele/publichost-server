@@ -1,3 +1,9 @@
+## [1.0.2](https://github.com/ivangabriele/publichost/compare/v1.0.1...v1.0.2) (2024-08-16)
+
+### Bug Fixes
+
+- **client:** use fs-extra/esm import ([2f2c1eb](https://github.com/ivangabriele/publichost/commit/2f2c1eb6ebf3db98731f2038e0b38b9416b6f78f))
+
 ## [1.0.1](https://github.com/ivangabriele/publichost/compare/v1.0.0...v1.0.1) (2024-08-16)
 
 ### Bug Fixes
