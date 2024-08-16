@@ -46,6 +46,8 @@ jobs:
           trust_level: ultimate
       - name: Add, Commit & Push
         run: |
+          # https://github.com/orgs/community/discussions/26580#discussioncomment-3281023
+          git config --global url.https://${{ secrets.GH_TOKEN }}@github.com/.insteadOf https://github.com/
           git config --global user.email "ivan.gabriele+github@protonmail.com"
           git config --global user.name "Ivan Gabriele (Github)"
           git add .

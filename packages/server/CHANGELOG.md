@@ -1,3 +1,9 @@
+## [1.0.1](https://github.com/ivangabriele/publichost/compare/v1.0.0...v1.0.1) (2024-08-16)
+
+### Bug Fixes
+
+- **client:** import all from CJS fs-extra dependency ([264f060](https://github.com/ivangabriele/publichost/commit/264f06066dd9a3e002a355ac8cae5b5e336cedc9))
+
 ## 1.0.0 (2024-08-16)
 
 ### Features
