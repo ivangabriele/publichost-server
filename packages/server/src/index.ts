@@ -24,9 +24,16 @@ if (!PORT) {
 }
 
 webSocketServer.on('connection', (ws, request) => {
+  if (!request.url) {
+    B.error('[PublicHost Server]', '`request.url` is undefined.')
+    ws.close(4000, 'Invalid request URL')
+
+    return
+  }
+
   B.debug('[PublicHost Server]', 'New PublicHost Client connection opened.')
 
-  if (request.headers['X-API-KEY'] !== API_KEY) {
+  if (request.headers['x-api-key'] !== API_KEY) {
     B.error('[PublicHost Server]', 'Invalid API key. Closing connection.')
 
     ws.close(4001, 'Invalid API key')
