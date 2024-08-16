@@ -1,22 +1,40 @@
 import { createServer } from 'node:http'
+import KoaRouter from '@koa/router'
 import { B } from 'bhala'
 import Koa from 'koa'
-import Router from 'koa-router'
 import { WEBSOCKETS_CLIENT_MESSAGE_TYPE, WEBSOCKETS_SERVER_MESSAGE_TYPE, WebSocketError } from 'publichost-common'
 import { WebSocketServer } from 'ws'
 
 import { registerClient } from './actions/registerClient.js'
 import { CLIENTS_STORE, SUBDOMAINS_STORE } from './stores.js'
 
-const app = new Koa()
-const router = new Router()
-const server = createServer(app.callback())
-const wss = new WebSocketServer({ noServer: true })
+const koaApp = new Koa()
+const koaRouter = new KoaRouter()
+const httpServer = createServer(koaApp.callback())
+const webSocketServer = new WebSocketServer({ noServer: true })
 
-const { PORT = '5508' } = process.env
+const { API_KEY, PORT } = process.env
+if (!API_KEY) {
+  B.error('[PublicHost Server]', '`API_KEY` env var is undefined.')
+  process.exit(1)
+}
+if (!PORT) {
+  B.error('[PublicHost Server]', '`PORT` env var is undefined.')
+  process.exit(1)
+}
 
-wss.on('connection', (ws, request) => {
+webSocketServer.on('connection', (ws, request) => {
   B.debug('[PublicHost Server]', 'New PublicHost Client connection opened.')
+
+  if (request.headers['X-API-KEY'] !== API_KEY) {
+    B.error('[PublicHost Server]', 'Invalid API key. Closing connection.')
+
+    ws.close(4001, 'Invalid API key')
+
+    return
+  }
+
+  B.debug('[PublicHost Server]', 'New PublicHost Client authorized.')
 
   ws.on('message', (rawMessage: string) => {
     const message = JSON.parse(rawMessage)
@@ -48,7 +66,7 @@ wss.on('connection', (ws, request) => {
   })
 })
 
-server.on('upgrade', (request, socket, head) => {
+httpServer.on('upgrade', (request, socket, head) => {
   if (!request.url) {
     B.error('[PublicHost Server]', '`request.url` is undefined.')
     socket.destroy()
@@ -68,14 +86,16 @@ server.on('upgrade', (request, socket, head) => {
     B.log('[PublicHost Server]', `[${subdomain}]`, 'Added to Subdomain Store.')
   }
 
-  wss.handleUpgrade(request, socket, head, (ws) => {
-    wss.emit('connection', ws, request)
+  webSocketServer.handleUpgrade(request, socket, head, (ws) => {
+    webSocketServer.emit('connection', ws, request)
   })
 })
 
-router.all('(.*)', async (ctx, next) => {
+koaRouter.all('(.*)', async (ctx, next) => {
+  const fullUrl = `${ctx.protocol}://${ctx.host}${ctx.req.url}`
   const subdomain = ctx.host.split('.')[0]
-  B.debug('[PublicHost Server]', `[${subdomain}]`, `⬅️ Incoming HTTP ${ctx.host}${ctx.request.method} ${ctx.req.url}.`)
+
+  B.debug('[PublicHost Server]', `[${subdomain}]`, `⬅️ Incoming HTTP ${ctx.request.method} ${fullUrl}.`)
 
   const ws = CLIENTS_STORE.get(subdomain)
   if (!ws) {
@@ -99,7 +119,8 @@ router.all('(.*)', async (ctx, next) => {
         method: ctx.method,
         headers: ctx.headers,
         url: ctx.url,
-        body: ctx.request.body,
+        // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+        body: (ctx.request as any).body,
       },
     }),
   )
@@ -131,8 +152,8 @@ router.all('(.*)', async (ctx, next) => {
   })
 })
 
-app.use(router.routes()).use(router.allowedMethods())
+koaApp.use(koaRouter.routes()).use(koaRouter.allowedMethods())
 
-server.listen(PORT, () => {
+httpServer.listen(PORT, () => {
   console.info('[PublicHost Server]', `Listening on port ${PORT}.`)
 })
