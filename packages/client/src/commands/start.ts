@@ -23,7 +23,16 @@ export function start(publicHostServerHost, subdomain, options) {
       `Connected to PublicHost Server on wss://${publicHostServerHost}.`,
       'Registering subdomain...',
     )
+
     ws.send(JSON.stringify({ type: WEBSOCKETS_CLIENT_MESSAGE_TYPE.REGISTER, subdomain }))
+  })
+
+  ws.on('ping', () => {
+    B.debug('[PublicHost Client]', '⬅️ PING')
+
+    ws.pong(undefined, undefined, () => {
+      B.debug('[PublicHost Client]', 'PONG ➡️')
+    })
   })
 
   ws.on('message', async (data: string) => {

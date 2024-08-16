@@ -15,7 +15,25 @@ const wss = new WebSocketServer({ noServer: true })
 const { BASE_DOMAIN_NAME = 'localhost:5508', PORT = '5508' } = process.env
 
 wss.on('connection', (ws, _request) => {
-  B.debug('[PublicHost Server]', 'New client connection opened.')
+  B.debug('[PublicHost Server]', 'New PublicHost Client connection opened.')
+
+  const timeout = setInterval(() => {
+    if (ws.readyState === ws.OPEN) {
+      B.debug('[PublicHost Server]', 'PING ➡️')
+
+      ws.ping()
+    }
+  }, 30000)
+
+  ws.on('close', () => {
+    B.warn('[PublicHost Server]', 'PublicHost Client connection closed.', 'Clearing ping interval.')
+
+    clearInterval(timeout)
+  })
+
+  ws.on('pong', () => {
+    B.debug('[PublicHost Server]', '⬅️ PONG')
+  })
 
   ws.on('message', (data: string) => {
     const message = JSON.parse(data)
@@ -36,9 +54,14 @@ wss.on('connection', (ws, _request) => {
             B.success('[PublicHost Server]', `[${subdomain}]`, 'PublicHost Client connection registered.')
 
             ws.on('close', () => {
-              CLIENTS_STORE.delete(subdomain)
+              B.warn(
+                '[PublicHost Server]',
+                `[${subdomain}]`,
+                'PublicHost Client connection closed.',
+                'Removing PublicHost Client connection.',
+              )
 
-              B.warn('[PublicHost Server]', `[${subdomain}]`, 'PublicHost Client connection closed.')
+              CLIENTS_STORE.delete(subdomain)
             })
 
             ws.send(JSON.stringify({ type: WEBSOCKETS_SERVER_MESSAGE_TYPE.REGISTERED, subdomain }))
@@ -95,7 +118,7 @@ server.on('upgrade', (request, socket, head) => {
 
 router.all('(.*)', async (ctx, next) => {
   const subdomain = ctx.host.split('.')[0]
-  B.debug('[PublicHost Server]', `[${subdomain}]`, `Incoming HTTP ${ctx.request.method} ${ctx.req.url}.`)
+  B.debug('[PublicHost Server]', `[${subdomain}]`, `⬅️ Incoming HTTP ${ctx.request.method} ${ctx.req.url}.`)
 
   const ws = CLIENTS_STORE.get(subdomain)
   if (!ws) {
