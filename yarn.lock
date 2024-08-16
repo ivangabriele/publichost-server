@@ -5427,8 +5427,8 @@ __metadata:
     bufferutil:
       optional: true
   bin:
-    ph: ./dist/bin/publichost
-    publichost: ./dist/bin/publichost
+    ph: ./dist/cli.js
+    publichost: ./dist/cli.js
   languageName: unknown
   linkType: soft
 
