@@ -1,7 +1,6 @@
 import { homedir } from 'node:os'
 import { join } from 'node:path'
-// biome-ignore lint/style/noNamespaceImport: <explanation>
-import * as fs from 'fs-extra'
+import { pathExistsSync, readJSONSync, writeJSONSync } from 'fs-extra/esm'
 import { CONFIG_FILE_NAME, INITIAL_CONFIG } from '../constants.js'
 import type { WorkspaceConfig } from '../types.js'
 
@@ -35,15 +34,15 @@ class Config {
   }
 
   #load(): import('../types.ts').Config {
-    if (!fs.existsSync(this.configPath)) {
-      fs.writeJSONSync(this.configPath, INITIAL_CONFIG, { spaces: 2 })
+    if (!pathExistsSync(this.configPath)) {
+      writeJSONSync(this.configPath, INITIAL_CONFIG, { spaces: 2 })
     }
 
-    return fs.readJSONSync(this.configPath)
+    return readJSONSync(this.configPath)
   }
 
   #save(nextConfig: import('../types.ts').Config) {
-    fs.writeJSONSync(this.configPath, nextConfig, { spaces: 2 })
+    writeJSONSync(this.configPath, nextConfig, { spaces: 2 })
   }
 }
 
