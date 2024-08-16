@@ -1,0 +1,14 @@
+{
+  "name": "publichost-common",
+  "description": "Internal package to share common code between PublicHost client and server.",
+  "license": "AGPL-3.0",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "22"
+  },
+  "exports": {
+    ".": "./src/index.js"
+  }
+}

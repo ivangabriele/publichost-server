@@ -1,0 +1,19 @@
+#!/usr/bin/env node
+
+import { program } from 'commander'
+import { start } from '../src/commands/start.js'
+import { DEFAULT_CLIENT_PORT, DEFAULT_SERVER_HOST } from '../src/constants.js'
+
+// const DEFAULT_PUBLICHOST_SERVER_URL = `ws://${DEFAULT_SERVER_HOST}`
+// const DEFAULT_PUBLICHOST_SERVER_URL = `http://${DEFAULT_SERVER_HOST}`
+
+program
+  .command('new <url> <subdomain> <port>.')
+  .description('Create and save a new subdomain for the current working directory.')
+  .argument('<host>', 'PublicHost Server host (ex: "example.org" or "publichost.example.org").', DEFAULT_SERVER_HOST)
+  .argument('<subdomain>', 'Subdomain to link to the current working directory (ex: "my-app").')
+  .argument('<port>', 'Your localhosted application port (ex: 3000).', DEFAULT_CLIENT_PORT)
+
+program.command('start').action(start)
+
+program.parse(process.argv)
