@@ -33,7 +33,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
       - name: Get new version
-        run: echo "NEW_VERSION=$(npm pkg get version | sed 's/"//g')" >> "$GITHUB_ENV"
+        run: |
+          echo "NEW_VERSION=$(npm pkg get version | sed 's/"//g')" >> "$GITHUB_ENV"
+          echo "NEW_VERSION=$NEW_VERSION"
       - name: Import GPG key
         uses: crazy-max/ghaction-import-gpg@v6
         with:
@@ -43,8 +45,9 @@ jobs:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           trust_level: ultimate
       - name: Add, Commit & Push
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "ci(release): v${{ env.NEW_VERSION }}"
-          commit_user_email: ivan.gabriele+github@protonmail.com
-          commit_user_name: "Ivan Gabriele (Github)"
+        run: |
+          git config --global user.email "ivan.gabriele+github@protonmail.com"
+          git config --global user.name "Ivan Gabriele (Github)"
+          git add .
+          git commit -m "ci(release): v${{ env.NEW_VERSION }}"
+          git push
