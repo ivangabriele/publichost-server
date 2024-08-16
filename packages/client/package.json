@@ -1,13 +1,13 @@
 {
   "name": "publichost",
-  "description": "Make your localhost public.",
+  "description": "Make your localhost public. Tunnel HTTP and WebSocket traffic to your local machine from any domain name.",
   "license": "AGPL-3.0",
   "version": "0.0.0",
   "type": "module",
   "engines": {
     "node": ">=20"
   },
-  "bin":{
+  "bin": {
     "ph": "./bin/publichost",
     "publichost": "./bin/publichost"
   },
@@ -22,6 +22,7 @@
     "axios": "1.7.4",
     "bhala": "3.0.4",
     "commander": "12.1.0",
+    "fs-extra": "11.2.0",
     "koa": "2.15.3",
     "koa-router": "12.0.1",
     "publichost-common": "workspace:*",
@@ -36,26 +37,31 @@
     "url": "https://www.ivangabriele.com"
   },
   "bugs": {
-    "url": "https://github.com/ivangabriele/bhala/issues"
+    "url": "https://github.com/ivangabriele/publichost/issues"
   },
-  "homepage": "https://github.com/ivangabriele/bhala#readme",
+  "homepage": "https://github.com/ivangabriele/publichost#readme",
   "keywords": [
-    "cli",
-    "color",
-    "coloured",
-    "console",
-    "log",
-    "logs",
-    "logger",
-    "logging",
-    "print",
-    "terminal"
+    "forward-proxy",
+    "forwarding",
+    "http",
+    "localhost",
+    "localtunnel",
+    "ngrok",
+    "proxy",
+    "reverse-proxy",
+    "tunnel",
+    "tunneling",
+    "websocket"
   ],
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "provenance": true
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ivangabriele/bhala.git"
+    "url": "git+https://github.com/ivangabriele/publichost.git"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "11.0.4"
   }
 }

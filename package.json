@@ -1,6 +1,6 @@
 {
   "name": "publichost-root",
-  "description": "Make your localhost public.",
+  "description": "Make your localhost public. Tunnel HTTP and WebSocket traffic to your local machine from any domain name.",
   "license": "AGPL-3.0",
   "version": "0.0.0",
   "private": true,
@@ -9,22 +9,41 @@
     "node": "22"
   },
   "workspaces": [
-    "packages/*"
+    "./packages/*"
   ],
   "scripts": {
     "dev:client": "yarn workspace publichost dev",
     "dev:server": "yarn workspace publichost-server dev",
+    "prepare": "husky",
     "start:client": "yarn workspace publichost start",
     "start:server": "yarn workspace publichost-server start",
     "test:lint": "biome check --write --files-ignore-unknown=true --no-errors-on-unmatched ."
   },
   "devDependencies": {
     "@biomejs/biome": "1.8.3",
+    "@commitlint/cli": "19.4.0",
     "@ivangabriele/biome-config": "1.2.0",
-    "concurrently": "8.2.2"
+    "@ivangabriele/commitlint-config": "2.0.3",
+    "@ivangabriele/prettier-config": "5.0.1",
+    "@ivangabriele/semantic-release-config-monorepo": "4.1.5",
+    "@ivangabriele/tsconfig-node": "2.0.0",
+    "@types/node": "22.3.0",
+    "@types/ws": "8.5.12",
+    "concurrently": "8.2.2",
+    "husky": "9.1.4",
+    "lint-staged": "15.2.9",
+    "prettier": "3.3.3",
+    "semantic-release": "24.0.0",
+    "typescript": "5.5.4"
+  },
+  "lint-staged": {
+    "*.{md,yaml,yml}": "prettier --write",
+    "*.{cjs,cts,d.cts,d.mts,d.ts,js,json,jsonc,jsx,mjs,mts,ts,tson,tsx}": [
+      "biome check --write --files-ignore-unknown=true --no-errors-on-unmatched"
+    ]
   },
   "packageManager": "yarn@4.4.0",
-  "dependencies": {
-    "bhala": "3.0.4"
+  "release": {
+    "extends": "@ivangabriele/semantic-release-config-monorepo"
   }
 }

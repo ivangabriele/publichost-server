@@ -1,4 +1,4 @@
-import http from 'node:http'
+import { createServer } from 'node:http'
 import { B } from 'bhala'
 import Koa from 'koa'
 import Router from 'koa-router'
@@ -9,7 +9,7 @@ import { CLIENTS_STORE, SUBDOMAINS_STORE } from './stores.js'
 
 const app = new Koa()
 const router = new Router()
-const server = http.createServer(app.callback())
+const server = createServer(app.callback())
 const wss = new WebSocketServer({ noServer: true })
 
 const { BASE_DOMAIN_NAME = 'localhost:5508', PORT = '5508' } = process.env
@@ -17,57 +17,70 @@ const { BASE_DOMAIN_NAME = 'localhost:5508', PORT = '5508' } = process.env
 wss.on('connection', (ws, _request) => {
   B.debug('[PublicHost Server]', 'New client connection opened.')
 
-  ws.on('message', (message) => {
-    const data = JSON.parse(message)
+  ws.on(
+    'message',
+    /**
+     * @param {string} data
+     */
+    (data) => {
+      const message = JSON.parse(data)
 
-    try {
-      switch (data.type) {
-        case WEBSOCKETS_CLIENT_MESSAGE_TYPE.REGISTER:
-          {
-            const { subdomain } = data
-            if (!subdomain || typeof subdomain !== 'string') {
-              throw new WebSocketError(`Invalid subdomain: \`${data.subdomain}\`.`)
+      try {
+        switch (message.type) {
+          case WEBSOCKETS_CLIENT_MESSAGE_TYPE.REGISTER:
+            {
+              const { subdomain } = message
+              if (!subdomain || typeof subdomain !== 'string') {
+                throw new WebSocketError(`Invalid subdomain: \`${message.subdomain}\`.`)
+              }
+              if (!SUBDOMAINS_STORE.has(subdomain)) {
+                throw new WebSocketError(`Subdomain "${subdomain}.${BASE_DOMAIN_NAME}" not found.`)
+              }
+
+              CLIENTS_STORE.set(subdomain, ws)
+              B.success('[PublicHost Server]', `[${subdomain}]`, 'PublicHost Client connection registered.')
+
+              ws.on('close', () => {
+                CLIENTS_STORE.delete(subdomain)
+
+                B.warn('[PublicHost Server]', `[${subdomain}]`, 'PublicHost Client connection closed.')
+              })
+
+              ws.send(JSON.stringify({ type: WEBSOCKETS_SERVER_MESSAGE_TYPE.REGISTERED, subdomain }))
             }
-            if (!SUBDOMAINS_STORE.has(subdomain)) {
-              throw new WebSocketError(`Subdomain "${subdomain}.${BASE_DOMAIN_NAME}" not found.`)
-            }
 
-            CLIENTS_STORE.set(subdomain, ws)
-            B.success('[PublicHost Server]', `[${subdomain}]`, 'PublicHost Client connection registered.')
+            break
 
-            ws.on('close', () => {
-              CLIENTS_STORE.delete(subdomain)
+          case WEBSOCKETS_CLIENT_MESSAGE_TYPE.RESPONSE:
+            break
 
-              B.warn('[PublicHost Server]', `[${subdomain}]`, 'PublicHost Client connection closed.')
-            })
+          default:
+            throw new WebSocketError(`Invalid message type: \`${message.type}\`.`)
+        }
+      } catch (err) {
+        if (err instanceof WebSocketError) {
+          B.warn('[PublicHost Server]', `Sending error to PublicHost Client: ${err.message}.`)
 
-            ws.send(JSON.stringify({ type: WEBSOCKETS_SERVER_MESSAGE_TYPE.REGISTERED, subdomain }))
-          }
+          ws.send(err.toWebsocketMessage())
+        } else {
+          B.error('[PublicHost Server]', `Sending unexpected error to PublicHost Client: ${err}.`)
+          B.debug(err)
 
-          break
-
-        case WEBSOCKETS_CLIENT_MESSAGE_TYPE.RESPONSE:
-          break
-
-        default:
-          throw new WebSocketError(`Invalid message type: \`${data.type}\`.`)
+          ws.send(new WebSocketError().toWebsocketMessage())
+        }
       }
-    } catch (err) {
-      if (err instanceof WebSocketError) {
-        B.warn('[PublicHost Server]', `Sending error to PublicHost Client: ${err.message}.`)
-
-        ws.send(err.toWebsocketMessage())
-      } else {
-        B.error('[PublicHost Server]', `Sending unexpected error to PublicHost Client: ${err}.`)
-        B.debug(err)
-
-        ws.send(new WebSocketError().toWebsocketMessage())
-      }
-    }
-  })
+    },
+  )
 })
 
 server.on('upgrade', (request, socket, head) => {
+  if (!request.url) {
+    B.error('[PublicHost Server]', '`request.url` is undefined.')
+    socket.destroy()
+
+    return
+  }
+
   const subdomain = request.url.slice(1).split('/')[0]
   const fullDomain = `${subdomain}.${BASE_DOMAIN_NAME}`
 
@@ -136,7 +149,7 @@ router.all('(.*)', async (ctx, next) => {
         ctx.set(response.headers || {})
         ctx.body = response.body || ''
 
-        resolve()
+        resolve(undefined)
       } catch (err) {
         reject(err)
       }

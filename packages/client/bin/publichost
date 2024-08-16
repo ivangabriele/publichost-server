@@ -1,19 +1,28 @@
 #!/usr/bin/env node
 
 import { program } from 'commander'
-import { start } from '../src/commands/start.js'
-import { DEFAULT_CLIENT_PORT, DEFAULT_SERVER_HOST } from '../src/constants.js'
+import { init } from '../src/commands/init.js'
+import { startFromConfig } from '../src/commands/start.js'
+import { DEFAULT_CLIENT_PORT } from '../src/constants.js'
+import { config } from '../src/libs/Config.js'
 
-// const DEFAULT_PUBLICHOST_SERVER_URL = `ws://${DEFAULT_SERVER_HOST}`
-// const DEFAULT_PUBLICHOST_SERVER_URL = `http://${DEFAULT_SERVER_HOST}`
+program.name('ph').description('PublicHost CLI.').version('0.0.0')
 
 program
-  .command('new <url> <subdomain> <port>.')
-  .description('Create and save a new subdomain for the current working directory.')
-  .argument('<host>', 'PublicHost Server host (ex: "example.org" or "publichost.example.org").', DEFAULT_SERVER_HOST)
-  .argument('<subdomain>', 'Subdomain to link to the current working directory (ex: "my-app").')
-  .argument('<port>', 'Your localhosted application port (ex: 3000).', DEFAULT_CLIENT_PORT)
+  .command('init')
+  .description(
+    [
+      'Create, link and save a new subdomain for the current workspace.',
+      '',
+      `Workspace configurations are saved to \`${config.configPath}\`.`,
+    ].join('\n'),
+  )
+  .argument('<host>', 'PublicHost Server host (ex: "example.org" or "publichost.example.org").')
+  .argument('<subdomain>', 'Subdomain to link to the current workspace (ex: "my-app").')
+  .option('-p, --port <port>', 'Your localhost application port', DEFAULT_CLIENT_PORT)
+  .option('--isHttps', 'Use HTTPS instead of HTTP when connecting to your localhost application', false)
+  .action(init)
 
-program.command('start').action(start)
+program.command('start').description('Start listening for incoming requests.').action(startFromConfig)
 
 program.parse(process.argv)

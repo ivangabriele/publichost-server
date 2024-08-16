@@ -1,0 +1,9 @@
+{
+  "extends": "@ivangabriele/tsconfig-node",
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "checkJs": true,
+    "noEmit": true,
+    "target": "ES2022"
+  }
+}
