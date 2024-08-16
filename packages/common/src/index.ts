@@ -7,3 +7,7 @@ export {
   ServerMessageType as WEBSOCKETS_SERVER_MESSAGE_TYPE,
   WebSocketError,
 }
+
+import type { AnyObject } from './types.js'
+
+export type { AnyObject }

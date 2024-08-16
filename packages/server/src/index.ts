@@ -5,6 +5,7 @@ import Router from 'koa-router'
 import { WEBSOCKETS_CLIENT_MESSAGE_TYPE, WEBSOCKETS_SERVER_MESSAGE_TYPE, WebSocketError } from 'publichost-common'
 import { WebSocketServer } from 'ws'
 
+import { registerClient } from './actions/registerClient.js'
 import { CLIENTS_STORE, SUBDOMAINS_STORE } from './stores.js'
 
 const app = new Koa()
@@ -12,61 +13,18 @@ const router = new Router()
 const server = createServer(app.callback())
 const wss = new WebSocketServer({ noServer: true })
 
-const { BASE_DOMAIN_NAME = 'localhost:5508', PORT = '5508' } = process.env
+const { PORT = '5508' } = process.env
 
-wss.on('connection', (ws, _request) => {
+wss.on('connection', (ws, request) => {
   B.debug('[PublicHost Server]', 'New PublicHost Client connection opened.')
 
-  const timeout = setInterval(() => {
-    if (ws.readyState === ws.OPEN) {
-      B.debug('[PublicHost Server]', 'PING ➡️')
-
-      ws.ping()
-    }
-  }, 30000)
-
-  ws.on('close', () => {
-    B.warn('[PublicHost Server]', 'PublicHost Client connection closed.', 'Clearing ping interval.')
-
-    clearInterval(timeout)
-  })
-
-  ws.on('pong', () => {
-    B.debug('[PublicHost Server]', '⬅️ PONG')
-  })
-
-  ws.on('message', (data: string) => {
-    const message = JSON.parse(data)
+  ws.on('message', (rawMessage: string) => {
+    const message = JSON.parse(rawMessage)
 
     try {
       switch (message.type) {
         case WEBSOCKETS_CLIENT_MESSAGE_TYPE.REGISTER:
-          {
-            const { subdomain } = message
-            if (!subdomain || typeof subdomain !== 'string') {
-              throw new WebSocketError(`Invalid subdomain: \`${message.subdomain}\`.`)
-            }
-            if (!SUBDOMAINS_STORE.has(subdomain)) {
-              throw new WebSocketError(`Subdomain "${subdomain}.${BASE_DOMAIN_NAME}" not found.`)
-            }
-
-            CLIENTS_STORE.set(subdomain, ws)
-            B.success('[PublicHost Server]', `[${subdomain}]`, 'PublicHost Client connection registered.')
-
-            ws.on('close', () => {
-              B.warn(
-                '[PublicHost Server]',
-                `[${subdomain}]`,
-                'PublicHost Client connection closed.',
-                'Removing PublicHost Client connection.',
-              )
-
-              CLIENTS_STORE.delete(subdomain)
-            })
-
-            ws.send(JSON.stringify({ type: WEBSOCKETS_SERVER_MESSAGE_TYPE.REGISTERED, subdomain }))
-          }
-
+          registerClient(ws, request, message)
           break
 
         case WEBSOCKETS_CLIENT_MESSAGE_TYPE.RESPONSE:
@@ -99,9 +57,8 @@ server.on('upgrade', (request, socket, head) => {
   }
 
   const subdomain = request.url.slice(1).split('/')[0]
-  const fullDomain = `${subdomain}.${BASE_DOMAIN_NAME}`
 
-  B.log('[PublicHost Server]', `Upgrade request for "${fullDomain}".`)
+  B.log('[PublicHost Server]', `[${subdomain}]`, 'PublicHost Client upgrade request.')
 
   if (SUBDOMAINS_STORE.has(subdomain)) {
     B.log('[PublicHost Server]', `[${subdomain}]`, 'Found in Subdomain Store.')
@@ -118,7 +75,7 @@ server.on('upgrade', (request, socket, head) => {
 
 router.all('(.*)', async (ctx, next) => {
   const subdomain = ctx.host.split('.')[0]
-  B.debug('[PublicHost Server]', `[${subdomain}]`, `⬅️ Incoming HTTP ${ctx.request.method} ${ctx.req.url}.`)
+  B.debug('[PublicHost Server]', `[${subdomain}]`, `⬅️ Incoming HTTP ${ctx.host}${ctx.request.method} ${ctx.req.url}.`)
 
   const ws = CLIENTS_STORE.get(subdomain)
   if (!ws) {
