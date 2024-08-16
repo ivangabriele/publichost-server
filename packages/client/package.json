@@ -8,15 +8,17 @@
     "node": ">=20"
   },
   "bin": {
-    "ph": "./bin/publichost",
-    "publichost": "./bin/publichost"
+    "ph": "./dist/cli.js",
+    "publichost": "./dist/cli.js"
   },
   "exports": {
-    ".": "./src/index.js"
+    ".": "./dist/index.js"
   },
   "scripts": {
-    "dev": "node --watch ./bin/publichost",
-    "start": "./bin/publichost"
+    "build": "rm -fr ./dist && tsup ./src/cli.ts ./src/index.ts --format esm --sourcemap && tsc -p ./tsconfig.build.json",
+    "dev": "node --loader ts-node/esm --watch ./src/cli.ts start",
+    "start": "node --loader ts-node/esm ./src/cli.ts",
+    "test:type": "tsc"
   },
   "dependencies": {
     "axios": "1.7.4",
@@ -25,11 +27,16 @@
     "fs-extra": "11.2.0",
     "koa": "2.15.3",
     "koa-router": "12.0.1",
-    "publichost-common": "workspace:*",
     "ws": "8.18.0"
   },
   "optionalDependencies": {
     "bufferutil": "4.0.8"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "11.0.4",
+    "@types/node": "22.3.0",
+    "@types/ws": "8.5.12",
+    "publichost-common": "workspace:*"
   },
   "author": {
     "name": "Ivan Gabriele",
@@ -60,8 +67,5 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ivangabriele/publichost.git"
-  },
-  "devDependencies": {
-    "@types/fs-extra": "11.0.4"
   }
 }

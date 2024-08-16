@@ -17,60 +17,54 @@ const { BASE_DOMAIN_NAME = 'localhost:5508', PORT = '5508' } = process.env
 wss.on('connection', (ws, _request) => {
   B.debug('[PublicHost Server]', 'New client connection opened.')
 
-  ws.on(
-    'message',
-    /**
-     * @param {string} data
-     */
-    (data) => {
-      const message = JSON.parse(data)
+  ws.on('message', (data: string) => {
+    const message = JSON.parse(data)
 
-      try {
-        switch (message.type) {
-          case WEBSOCKETS_CLIENT_MESSAGE_TYPE.REGISTER:
-            {
-              const { subdomain } = message
-              if (!subdomain || typeof subdomain !== 'string') {
-                throw new WebSocketError(`Invalid subdomain: \`${message.subdomain}\`.`)
-              }
-              if (!SUBDOMAINS_STORE.has(subdomain)) {
-                throw new WebSocketError(`Subdomain "${subdomain}.${BASE_DOMAIN_NAME}" not found.`)
-              }
-
-              CLIENTS_STORE.set(subdomain, ws)
-              B.success('[PublicHost Server]', `[${subdomain}]`, 'PublicHost Client connection registered.')
-
-              ws.on('close', () => {
-                CLIENTS_STORE.delete(subdomain)
-
-                B.warn('[PublicHost Server]', `[${subdomain}]`, 'PublicHost Client connection closed.')
-              })
-
-              ws.send(JSON.stringify({ type: WEBSOCKETS_SERVER_MESSAGE_TYPE.REGISTERED, subdomain }))
+    try {
+      switch (message.type) {
+        case WEBSOCKETS_CLIENT_MESSAGE_TYPE.REGISTER:
+          {
+            const { subdomain } = message
+            if (!subdomain || typeof subdomain !== 'string') {
+              throw new WebSocketError(`Invalid subdomain: \`${message.subdomain}\`.`)
+            }
+            if (!SUBDOMAINS_STORE.has(subdomain)) {
+              throw new WebSocketError(`Subdomain "${subdomain}.${BASE_DOMAIN_NAME}" not found.`)
             }
 
-            break
+            CLIENTS_STORE.set(subdomain, ws)
+            B.success('[PublicHost Server]', `[${subdomain}]`, 'PublicHost Client connection registered.')
 
-          case WEBSOCKETS_CLIENT_MESSAGE_TYPE.RESPONSE:
-            break
+            ws.on('close', () => {
+              CLIENTS_STORE.delete(subdomain)
 
-          default:
-            throw new WebSocketError(`Invalid message type: \`${message.type}\`.`)
-        }
-      } catch (err) {
-        if (err instanceof WebSocketError) {
-          B.warn('[PublicHost Server]', `Sending error to PublicHost Client: ${err.message}.`)
+              B.warn('[PublicHost Server]', `[${subdomain}]`, 'PublicHost Client connection closed.')
+            })
 
-          ws.send(err.toWebsocketMessage())
-        } else {
-          B.error('[PublicHost Server]', `Sending unexpected error to PublicHost Client: ${err}.`)
-          B.debug(err)
+            ws.send(JSON.stringify({ type: WEBSOCKETS_SERVER_MESSAGE_TYPE.REGISTERED, subdomain }))
+          }
 
-          ws.send(new WebSocketError().toWebsocketMessage())
-        }
+          break
+
+        case WEBSOCKETS_CLIENT_MESSAGE_TYPE.RESPONSE:
+          break
+
+        default:
+          throw new WebSocketError(`Invalid message type: \`${message.type}\`.`)
       }
-    },
-  )
+    } catch (err) {
+      if (err instanceof WebSocketError) {
+        B.warn('[PublicHost Server]', `Sending error to PublicHost Client: ${err.message}.`)
+
+        ws.send(err.toWebsocketMessage())
+      } else {
+        B.error('[PublicHost Server]', `Sending unexpected error to PublicHost Client: ${err}.`)
+        B.debug(err)
+
+        ws.send(new WebSocketError().toWebsocketMessage())
+      }
+    }
+  })
 })
 
 server.on('upgrade', (request, socket, head) => {
@@ -131,7 +125,7 @@ router.all('(.*)', async (ctx, next) => {
   )
 
   await new Promise((resolve, reject) => {
-    ws.once('message', (data) => {
+    ws.once('message', (data: string) => {
       try {
         const clientMessage = JSON.parse(data)
         if (clientMessage?.type !== WEBSOCKETS_CLIENT_MESSAGE_TYPE.RESPONSE) {

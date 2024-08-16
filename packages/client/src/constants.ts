@@ -1,14 +1,14 @@
+import type { Config, StartOptions } from './types.js'
+
 export const DEFAULT_CLIENT_PORT = '3000'
 export const DEFAULT_SERVER_HOST = 'localhost:5508'
 
 export const CONFIG_FILE_NAME = '.publichost.json'
-/** @type {import('./types.ts').Config} */
-export const INITIAL_CONFIG = {
+export const INITIAL_CONFIG: Config = {
   subdomains: {},
 }
 
-/** @type {import('./types.ts').StartOptions} */
-export const DEFAULT_START_OPTIONS = {
+export const DEFAULT_START_OPTIONS: StartOptions = {
   isHttps: false,
   localhostAppPort: DEFAULT_CLIENT_PORT,
 }

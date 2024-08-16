@@ -1,18 +1,17 @@
 import { homedir } from 'node:os'
 import { join } from 'node:path'
-import fs from 'fs-extra'
+import { existsSync, readJSONSync, writeJSONSync } from 'fs-extra'
 import { CONFIG_FILE_NAME, INITIAL_CONFIG } from '../constants.js'
+import type { WorkspaceConfig } from '../types.js'
 
 class Config {
+  configPath: string
+
   constructor() {
     this.configPath = join(homedir(), CONFIG_FILE_NAME)
   }
 
-  /**
-   * @param {string} workspacePath
-   * @returns {import('../types.ts').WorkspaceConfig | undefined}
-   */
-  getWorkspaceConfig(workspacePath) {
+  getWorkspaceConfig(workspacePath: string): WorkspaceConfig | undefined {
     const config = this.#load()
     const configEntry = Object.entries(config.subdomains).find(
       ([, workspaceConfig]) => workspaceConfig.workspacePath === workspacePath,
@@ -34,22 +33,16 @@ class Config {
     this.#save(config)
   }
 
-  /**
-   * @returns {import('../types.ts').Config}
-   */
-  #load() {
-    if (!fs.existsSync(this.configPath)) {
-      fs.writeJSONSync(this.configPath, INITIAL_CONFIG, { spaces: 2 })
+  #load(): import('../types.ts').Config {
+    if (!existsSync(this.configPath)) {
+      writeJSONSync(this.configPath, INITIAL_CONFIG, { spaces: 2 })
     }
 
-    return fs.readJSONSync(this.configPath)
+    return readJSONSync(this.configPath)
   }
 
-  /**
-   * @param {import('../types.ts').Config} nextConfig
-   */
-  #save(nextConfig) {
-    fs.writeJSONSync(this.configPath, nextConfig, { spaces: 2 })
+  #save(nextConfig: import('../types.ts').Config) {
+    writeJSONSync(this.configPath, nextConfig, { spaces: 2 })
   }
 }
 

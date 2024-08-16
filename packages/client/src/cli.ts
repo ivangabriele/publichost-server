@@ -1,10 +1,10 @@
-#!/usr/bin/env node
+#!/bin/env node
 
 import { program } from 'commander'
-import { init } from '../src/commands/init.js'
-import { startFromConfig } from '../src/commands/start.js'
-import { DEFAULT_CLIENT_PORT } from '../src/constants.js'
-import { config } from '../src/libs/Config.js'
+import { init } from './commands/init.js'
+import { startFromConfig } from './commands/start.js'
+import { DEFAULT_CLIENT_PORT } from './constants.js'
+import { config } from './libs/Config.js'
 
 program.name('ph').description('PublicHost CLI.').version('0.0.0')
 

@@ -12,13 +12,16 @@
     "./packages/*"
   ],
   "scripts": {
+    "build":"yarn workspaces foreach -A run build",
+    "build:client": "yarn workspace publichost build",
+    "build:server": "yarn workspace publichost-server build",
     "dev:client": "yarn workspace publichost dev",
     "dev:server": "yarn workspace publichost-server dev",
     "prepare": "husky",
     "start:client": "yarn workspace publichost start",
     "start:server": "yarn workspace publichost-server start",
     "test:lint": "biome check --write --files-ignore-unknown=true --no-errors-on-unmatched .",
-    "test:type": "tsc"
+    "test:type": "yarn workspaces foreach -A run test:type"
   },
   "devDependencies": {
     "@biomejs/biome": "1.8.3",
@@ -28,13 +31,12 @@
     "@ivangabriele/prettier-config": "5.0.1",
     "@ivangabriele/semantic-release-config-monorepo": "4.1.5",
     "@ivangabriele/tsconfig-node": "2.0.0",
-    "@types/node": "22.3.0",
-    "@types/ws": "8.5.12",
     "concurrently": "8.2.2",
     "husky": "9.1.4",
     "lint-staged": "15.2.9",
     "prettier": "3.3.3",
     "semantic-release": "24.0.0",
+    "tsup": "8.2.4",
     "typescript": "5.5.4"
   },
   "lint-staged": {

@@ -1,9 +1,14 @@
 {
   "extends": "@ivangabriele/tsconfig-node",
   "compilerOptions": {
-    "allowImportingTsExtensions": true,
     "checkJs": true,
     "noEmit": true,
     "target": "ES2022"
+  },
+  "exclude": ["**/build/", "**/dist/", "**/node_modules/"],
+  "ts-node": {
+    "esm": true,
+    "swc": true,
+    "transpileOnly": true
   }
 }
