@@ -9,6 +9,10 @@ import { serveStaticFile } from '../utils/serveStaticFile.js'
 const BASE_DOMAIN = requireEnv('BASE_DOMAIN')
 
 export async function handleSubdomainRequest(ctx: Context, next: Next) {
+  if (ctx.host === BASE_DOMAIN) {
+    await next()
+  }
+
   const subdomain = ctx.host.split('.')[0]
   const fullUrl = `${ctx.host}${ctx.req.url}`
   B.log('[PublicHost Server]', `[${subdomain}]`, `⬅️ Incoming HTTP request: \`${ctx.request.method} ${fullUrl}\`.`)
