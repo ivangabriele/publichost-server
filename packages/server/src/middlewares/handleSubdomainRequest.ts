@@ -11,19 +11,20 @@ const BASE_DOMAIN = requireEnv('BASE_DOMAIN')
 export async function handleSubdomainRequest(ctx: Context, next: Next) {
   if (ctx.host === BASE_DOMAIN) {
     await next()
+
+    return
+  }
+  if (!ctx.host.endsWith(`.${BASE_DOMAIN}`)) {
+    B.log('[PublicHost Server]', '🚫 Request sent to wrong domain or IP. Rejecting with a 404.')
+
+    await serveStaticFile(ctx, '404.html', 404)
+
+    return
   }
 
   const subdomain = ctx.host.split('.')[0]
   const fullUrl = `${ctx.host}${ctx.req.url}`
   B.log('[PublicHost Server]', `[${subdomain}]`, `⬅️ Incoming HTTP request: \`${ctx.request.method} ${fullUrl}\`.`)
-
-  if (!ctx.host.endsWith(`.${BASE_DOMAIN}`)) {
-    B.log('[PublicHost Server]', `[${subdomain}]`, '🚫 Invalid domain name. Sending 404.')
-
-    await serveStaticFile(ctx, '404.html', 400)
-
-    return
-  }
 
   const ws = CLIENTS_STORE.get(subdomain)
   if (!ws) {
