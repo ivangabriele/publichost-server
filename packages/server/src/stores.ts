@@ -1,2 +1,4 @@
-export const CLIENTS_STORE = new Map()
-export const SUBDOMAINS_STORE = new Set()
+import type { WebSocket } from 'ws'
+
+export const CLIENTS_STORE = new Map<string, WebSocket>()
+export const SUBDOMAINS_STORE = new Set<string>()
