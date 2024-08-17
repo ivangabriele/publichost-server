@@ -10,7 +10,7 @@
   },
   "scripts": {
     "build": "rm -fr ./dist && tsup ./src/index.ts --format esm --sourcemap",
-    "dev": "node --loader ts-node/esm --watch ./src/index.ts",
+    "dev": "node --loader ts-node/esm -r dotenv/config --watch ./src/index.ts",
     "start": "node ./dist/index.js",
     "test:type": "tsc"
   },
@@ -32,6 +32,7 @@
     "@types/koa__router": "12.0.4",
     "@types/node": "22.3.0",
     "@types/ws": "8.5.12",
+    "dotenv": "16.4.5",
     "publichost-common": "workspace:*"
   }
 }
