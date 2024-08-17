@@ -1,5 +1,4 @@
 import { createServer } from 'node:http'
-import { bodyParser } from '@koa/bodyparser'
 import KoaRouter from '@koa/router'
 import { B } from 'bhala'
 import Koa from 'koa'
@@ -24,12 +23,7 @@ httpServer.on('upgrade', handleBaseDomainUpgradeRequest)
 
 koaRouter.all('(.*)', handleSubdomainRequest)
 
-koaApp
-  .use(bodyParser)
-  .use(handleBaseDomainRequest)
-  .use(koaRouter.routes())
-  .use(koaRouter.allowedMethods())
-  .use(handleBaseDomainError)
+koaApp.use(handleBaseDomainRequest).use(koaRouter.routes()).use(koaRouter.allowedMethods()).use(handleBaseDomainError)
 
 httpServer.listen(PORT, () => {
   B.info('[PublicHost Server]', `Listening on port ${PORT}.`)

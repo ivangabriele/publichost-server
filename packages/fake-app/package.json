@@ -12,6 +12,7 @@
     "dev": "node --loader ts-node/esm --watch ./src/index.ts"
   },
   "dependencies": {
-    "bhala": "3.0.4"
+    "bhala": "3.0.4",
+    "raw-body": "3.0.0"
   }
 }

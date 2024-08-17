@@ -10,7 +10,9 @@ export function start(publicHostServerHost: string, subdomain: string, apiKey: s
   const controlledOptions = { ...options, ...DEFAULT_START_OPTIONS }
   const { isHttps, localhostAppPort } = controlledOptions
   const localhostAppBaseUrl = `http${isHttps ? 's' : ''}://localhost:${localhostAppPort}`
-  const ws = new WebSocket(`wss://${publicHostServerHost}/${subdomain}`, {
+  const webSocketUrl = `${process.env.IS_LOCAL_SERVER === 'true' ? 'ws' : 'wss'}://${publicHostServerHost}/${subdomain}`
+
+  const ws = new WebSocket(webSocketUrl, {
     headers: {
       'x-api-key': apiKey,
     },
@@ -41,6 +43,11 @@ export function start(publicHostServerHost: string, subdomain: string, apiKey: s
       switch (message.type) {
         case WEBSOCKETS_SERVER_MESSAGE_TYPE.REGISTERED: {
           B.success('[PublicHost Client]', `[${subdomain}]`, 'Subdomain registered.')
+          B.info(
+            '[PublicHost Client]',
+            `[${subdomain}]`,
+            `You can now access your localhost app at https://${subdomain}.${publicHostServerHost}.`,
+          )
 
           return
         }
@@ -62,11 +69,13 @@ export function start(publicHostServerHost: string, subdomain: string, apiKey: s
       }
 
       const { request } = message
+
       B.log(
         '[PublicHost Client]',
         `[${subdomain}]`,
         `↔️ Forwarding HTTP ${request.method} ${request.url} from PublicHost Server to Localhost App.`,
       )
+
       const response = await axios({
         method: request.method,
         url: `${localhostAppBaseUrl}${request.url}`,
@@ -79,6 +88,7 @@ export function start(publicHostServerHost: string, subdomain: string, apiKey: s
         `[${subdomain}]`,
         `⬅️ Forwarding Localhost App HTTP ${response.status} response to PublicHost Server.`,
       )
+
       ws.send(
         JSON.stringify({
           type: WEBSOCKETS_CLIENT_MESSAGE_TYPE.RESPONSE,
@@ -133,7 +143,10 @@ export function startFromConfig() {
   const workspacePath = process.cwd()
   const workspaceConfig = configManager.getWorkspaceConfig(workspacePath)
   if (!workspaceConfig) {
-    B.error('[PublicHost Client]', `No configuration found for the current workspace: ${workspacePath}.`)
+    B.error(
+      '[PublicHost Client]',
+      `No configuration found for the current workspace or any of its parents: \`${workspacePath}\`.`,
+    )
     B.info('[PublicHost Client]', 'Run `ph init` to initialize a new configuration for this workspace.')
 
     return

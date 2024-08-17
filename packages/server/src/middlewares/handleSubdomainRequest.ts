@@ -36,22 +36,30 @@ export async function handleSubdomainRequest(ctx: Context, next: Next) {
     return
   }
 
-  B.log(
-    '[PublicHost Server]',
-    `[${subdomain}]`,
-    `➡️ Forwarding HTTP ${ctx.request.method} ${ctx.req.url} to PublicHost Client.`,
-  )
-  ws.send(
-    JSON.stringify({
-      type: WEBSOCKETS_SERVER_MESSAGE_TYPE.REQUEST,
-      request: {
-        method: ctx.method,
-        headers: ctx.headers,
-        url: ctx.url,
-        body: ctx.request.body,
-      },
-    }),
-  )
+  let body = ''
+  ctx.req.on('data', (chunk) => {
+    body += chunk
+  })
+
+  ctx.req.on('end', () => {
+    B.log(
+      '[PublicHost Server]',
+      `[${subdomain}]`,
+      `➡️ Forwarding HTTP ${ctx.request.method} ${ctx.req.url} to PublicHost Client.`,
+    )
+
+    ws.send(
+      JSON.stringify({
+        type: WEBSOCKETS_SERVER_MESSAGE_TYPE.REQUEST,
+        request: {
+          method: ctx.method,
+          headers: ctx.headers,
+          url: ctx.url,
+          body,
+        },
+      }),
+    )
+  })
 
   await new Promise((resolve, reject) => {
     ws.once('message', (data: string) => {
@@ -61,16 +69,16 @@ export async function handleSubdomainRequest(ctx: Context, next: Next) {
           return
         }
 
-        B.log(
-          '[PublicHost Server]',
-          `[${subdomain}]`,
-          `⬅️ Received PublicHost Client response for HTTP ${ctx.request.method} ${ctx.req.url}. Sending back.`,
-        )
-
         const response = clientMessage.response
         ctx.status = response.status || 200
         ctx.set(response.headers || {})
         ctx.body = response.body || ''
+
+        B.log(
+          '[PublicHost Server]',
+          `[${subdomain}]`,
+          `⬅️ Sending back PublicHost Client ${ctx.status} response for HTTP ${ctx.request.method} ${ctx.req.url}.`,
+        )
 
         resolve(undefined)
       } catch (err) {

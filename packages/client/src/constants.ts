@@ -1,9 +1,8 @@
 import type { Config, StartOptions } from './types.js'
 
 export const DEFAULT_CLIENT_PORT = '3000'
-export const DEFAULT_SERVER_HOST = 'localhost:5508'
 
-export const CONFIG_FILE_NAME = '.publichost.json'
+export const CONFIG_FILE_NAME = process.env.IS_LOCAL_SERVER === 'true' ? '.publichost.dev.json' : '.publichost.json'
 export const INITIAL_CONFIG: Config = {
   subdomains: {},
 }

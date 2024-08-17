@@ -16,7 +16,6 @@
   },
   "dependencies": {
     "@faker-js/faker": "8.4.1",
-    "@koa/bodyparser": "5.1.1",
     "@koa/router": "13.0.0",
     "bhala": "3.0.4",
     "esm-path": "1.0.1",
