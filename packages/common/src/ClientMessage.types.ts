@@ -25,12 +25,13 @@ export namespace ClientMessage {
   }
 
   export interface ResponseMessage extends BaseMessage {
+    id: string
     type: Type.RESPONSE
     response: {
-      method: string
-      url: string
-      headers: Record<string, string>
-      body: string
+      status: number
+      // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+      headers: Record<string, any>
+      rawBody: string
     }
   }
 }

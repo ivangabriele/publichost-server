@@ -6,7 +6,9 @@ const TEST_API_BASE_URL = 'http://publichost.localhost:5508'
 describe('[E2E] GET Requests', () => {
   // biome-ignore lint/correctness/noUndeclaredVariables: <explanation>
   it('should send a GET request and receive the expected response', async () => {
-    const response = await ky.get(`${TEST_API_BASE_URL}/posts/1`)
+    const response = await ky.get(`${TEST_API_BASE_URL}/posts/1`, {
+      retry: 0,
+    })
 
     // biome-ignore lint/correctness/noUndeclaredVariables: <explanation>
     expect(response.status).toBe(200)

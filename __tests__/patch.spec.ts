@@ -10,6 +10,7 @@ describe('[E2E] PATCH Requests', () => {
       json: {
         title: 'foo',
       },
+      retry: 0,
     })
 
     // biome-ignore lint/correctness/noUndeclaredVariables: <explanation>

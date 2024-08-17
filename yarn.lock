@@ -3867,6 +3867,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"cuid@npm:3.0.0":
+  version: 3.0.0
+  resolution: "cuid@npm:3.0.0"
+  checksum: 10c0/e1cac04b8df3222fa612ac23f5ad1839f31ec58778a1cfcb23231224f3fe63cc0bb1747188f349bc93f87a74f574ace31ddcb3e60f5eb4543ff5c9e9458a0168
+  languageName: node
+  linkType: hard
+
 "dargs@npm:^8.0.0":
   version: 8.1.0
   resolution: "dargs@npm:8.1.0"
@@ -7853,6 +7860,7 @@ __metadata:
     "@types/ws": "npm:8.5.12"
     bhala: "npm:3.0.4"
     bufferutil: "npm:4.0.8"
+    cuid: "npm:3.0.0"
     dotenv: "npm:16.4.5"
     esm-path: "npm:1.0.1"
     koa: "npm:2.15.3"

@@ -28,12 +28,12 @@ export function registerClient(ws: WebSocket, _request: IncomingMessage, message
   })
 
   ws.on('pong', () => {
-    B.debug('[PublicHost Server]', `[${subdomain}]`, '⬅️ PONG')
+    // B.debug('[PublicHost Server]', `[${subdomain}]`, '⬅️ PONG')
   })
 
   const timeout = setInterval(() => {
     if (ws.readyState === ws.OPEN) {
-      B.debug('[PublicHost Server]', `[${subdomain}]`, 'PING ➡️')
+      // B.debug('[PublicHost Server]', `[${subdomain}]`, 'PING ➡️')
 
       ws.ping()
     }

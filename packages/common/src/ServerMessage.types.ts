@@ -25,12 +25,14 @@ export namespace ServerMessage {
   }
 
   export interface RequestMessage extends BaseMessage {
+    id: string
     type: Type.REQUEST
     request: {
       method: string
+      rawBody: string
+      // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+      headers: Record<string, any>
       url: string
-      headers: Record<string, string>
-      body: string
     }
   }
 }

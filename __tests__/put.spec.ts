@@ -13,6 +13,7 @@ describe('[E2E] PUT Requests', () => {
         title: 'foo',
         userId: 1,
       },
+      retry: 0,
     })
 
     // biome-ignore lint/correctness/noUndeclaredVariables: <explanation>

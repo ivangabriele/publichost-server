@@ -1,8 +1,10 @@
 import { B } from 'bhala'
+import cuid from 'cuid'
 import type { Context, Next } from 'koa'
 import { ClientMessage, ServerMessage } from 'publichost-common'
 
-import { CLIENTS_STORE } from '../stores.js'
+import type { WebSocket } from 'ws'
+import { CLIENTS_STORE, PENDING_REQUESTS_STORE } from '../stores.js'
 import { requireEnv } from '../utils/requireEnv.js'
 import { serveStaticFile } from '../utils/serveStaticFile.js'
 
@@ -22,9 +24,15 @@ export async function handleSubdomainRequest(ctx: Context, next: Next) {
     return
   }
 
+  const requestId = cuid()
   const subdomain = ctx.host.split('.')[0]
-  const fullUrl = `${ctx.host}${ctx.req.url}`
-  B.log('[PublicHost Server]', `[${subdomain}]`, `⬅️ Incoming HTTP request: \`${ctx.request.method} ${fullUrl}\`.`)
+
+  B.log(
+    '[PublicHost Server]',
+    `[${subdomain}]`,
+    `[${requestId}]`,
+    `⬅️ Receiving HTTP Request ${ctx.request.method} ${ctx.req.url}.`,
+  )
 
   const ws = CLIENTS_STORE.get(subdomain)
   if (!ws) {
@@ -36,54 +44,96 @@ export async function handleSubdomainRequest(ctx: Context, next: Next) {
     return
   }
 
-  let body = ''
-  ctx.req.on('data', (chunk) => {
-    body += chunk
-  })
+  const bodyBuffer = await getRawBody(ctx.req)
 
-  ctx.req.on('end', () => {
-    B.log(
-      '[PublicHost Server]',
-      `[${subdomain}]`,
-      `➡️ Forwarding HTTP ${ctx.request.method} ${ctx.req.url} to PublicHost Client.`,
-    )
+  B.log(
+    '[PublicHost Server]',
+    `[${subdomain}]`,
+    `[${requestId}]`,
+    `➡️ Forwarding HTTP ${ctx.request.method} ${ctx.req.url} to PublicHost Client.`,
+  )
 
-    ws.send(
-      JSON.stringify({
-        type: ServerMessage.Type.REQUEST,
-        request: {
-          method: ctx.method,
-          headers: ctx.headers,
-          url: ctx.url,
-          body,
-        },
-      }),
-    )
-  })
+  const requestMessage: ServerMessage.RequestMessage = {
+    id: requestId,
+    type: ServerMessage.Type.REQUEST,
+    request: {
+      method: ctx.method,
+      url: ctx.url,
+      headers: ctx.request.headers as Record<string, string>,
+      rawBody: bodyBuffer.toString(),
+    },
+  }
+  PENDING_REQUESTS_STORE.set(requestMessage.id, { ctx })
+  ws.send(JSON.stringify(requestMessage))
 
+  await waitForClientResponse(requestId, subdomain, ws)
+}
+
+async function waitForClientResponse(requestId: string, subdomain: string, ws: WebSocket) {
   await new Promise((resolve, reject) => {
-    ws.once('message', (data: string) => {
+    const pendingRequest = PENDING_REQUESTS_STORE.get(requestId)
+    if (!pendingRequest) {
+      return reject(new Error('Pending request not found'))
+    }
+
+    pendingRequest.resolve = resolve
+
+    const handleMessage = (rawMessage: string) => {
       try {
-        const clientMessage = JSON.parse(data)
-        if (clientMessage?.type !== ClientMessage.Type.RESPONSE) {
+        const clientMessage = JSON.parse(rawMessage) as ClientMessage.Message
+        if (clientMessage.type !== ClientMessage.Type.RESPONSE || clientMessage.id !== requestId) {
           return
         }
 
-        const response = clientMessage.response
-        ctx.status = response.status || 200
-        ctx.set(response.headers || {})
-        ctx.body = response.body || ''
+        const clientResponseMessage = clientMessage // Clarify type inference
+
+        const ctx = pendingRequest.ctx
+        ctx.status = clientResponseMessage.response.status || 200
+        ctx.set(clientResponseMessage.response.headers)
+        ctx.body = clientResponseMessage.response.rawBody
+
+        // PENDING_REQUESTS_STORE.delete(clientMessage.id)
 
         B.log(
           '[PublicHost Server]',
           `[${subdomain}]`,
-          `⬅️ Sending back PublicHost Client ${ctx.status} response for HTTP ${ctx.request.method} ${ctx.req.url}.`,
+          `[${requestId}]`,
+          `⬅️ Sending back HTTP Response ${ctx.status} response for HTTP ${ctx.request.method} ${ctx.req.url}.`,
         )
 
         resolve(undefined)
       } catch (err) {
         reject(err)
       }
+    }
+
+    ws.on('message', handleMessage)
+
+    ws.on('close', () => {
+      reject(new Error('WebSocket connection closed before response was received.'))
+    })
+
+    ws.on('error', (err) => {
+      reject(err)
+    })
+  })
+}
+
+function getRawBody(req: Context['req']): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const chunks = []
+
+    req.on('data', (chunk) => {
+      // @ts-ignore
+      chunks.push(chunk)
+    })
+
+    req.on('end', () => {
+      resolve(Buffer.concat(chunks))
+    })
+
+    req.on('error', (err) => {
+      reject(err)
     })
   })
 }

@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
 import { B } from 'bhala'
 import { ClientMessage, ServerMessage } from 'publichost-common'
 import { WebSocket } from 'ws'
@@ -34,17 +34,17 @@ export function start(publicHostServerHost: string, subdomain: string, apiKey: s
   })
 
   ws.on('ping', () => {
-    B.debug('[PublicHost Client]', '⬅️ PING')
+    // B.debug('[PublicHost Client]', '⬅️ PING')
 
     ws.pong(undefined, undefined, () => {
-      B.debug('[PublicHost Client]', 'PONG ➡️')
+      // B.debug('[PublicHost Client]', 'PONG ➡️')
     })
   })
 
   ws.on('message', async (data: string) => {
     try {
-      const message = JSON.parse(data) as ServerMessage.Message
-      switch (message.type) {
+      const serverMessage = JSON.parse(data) as ServerMessage.Message
+      switch (serverMessage.type) {
         case ServerMessage.Type.REGISTERED: {
           B.success('[PublicHost Client]', `[${subdomain}]`, 'Subdomain registered.')
           B.info(
@@ -57,7 +57,7 @@ export function start(publicHostServerHost: string, subdomain: string, apiKey: s
         }
 
         case ServerMessage.Type.ERROR: {
-          B.error('[PublicHost Client]', `[${subdomain}]`, `PublicHost Server sent an error: ${message.error}.`)
+          B.error('[PublicHost Client]', `[${subdomain}]`, `PublicHost Server sent an error: ${serverMessage.error}.`)
 
           return
         }
@@ -67,70 +67,93 @@ export function start(publicHostServerHost: string, subdomain: string, apiKey: s
 
         default: {
           // @ts-expect-error
-          B.error('[PublicHost Client]', `[${subdomain}]`, `Invalid message type: ${message.type}.`)
+          B.error('[PublicHost Client]', `[${subdomain}]`, `Invalid message type: ${serverMessage.type}.`)
 
           return
         }
       }
 
-      const { request } = message
+      const serverRequestMessage = serverMessage // Clarify type inference
 
       B.log(
         '[PublicHost Client]',
         `[${subdomain}]`,
-        `↔️ Forwarding HTTP ${message.request.method} ${message.request.url} from PublicHost Server to Localhost App.`,
+        `[${serverRequestMessage.id}]`,
+        `➡️ Forwarding HTTP Request ${serverMessage.request.method} ${serverMessage.request.url} to Localhost App.`,
       )
 
       const cleanHeaders = Object.fromEntries(
-        Object.entries(request.headers).filter(([key]) => !['host'].includes(key)),
+        Object.entries(serverRequestMessage.request.headers).filter(([key]) => !['host'].includes(key)),
       )
 
-      const response = await axios({
-        method: request.method,
-        url: `${localhostAppBaseUrl}${request.url}`,
-        headers: cleanHeaders,
-        data: request.body,
-      })
-      B.log(
-        '[PublicHost Client]',
-        `[${subdomain}]`,
-        `⬅️ Forwarding Localhost App HTTP ${response.status} response to PublicHost Server.`,
-      )
+      try {
+        const localhostAppResponse = await axios({
+          method: serverRequestMessage.request.method,
+          url: `${localhostAppBaseUrl}${serverRequestMessage.request.url}`,
+          headers: cleanHeaders,
+          data: serverRequestMessage.request.rawBody,
+        })
+        B.log(
+          '[PublicHost Client]',
+          `[${subdomain}]`,
+          `[${serverRequestMessage.id}]`,
+          `⬅️ Forwarding HTTP Response ${localhostAppResponse.status} for ${serverMessage.request.method} ${serverMessage.request.url} to PublicHost Server.`,
+        )
 
-      ws.send(
-        JSON.stringify({
+        const clientResponseMessage: ClientMessage.ResponseMessage = {
+          id: serverRequestMessage.id,
           type: ClientMessage.Type.RESPONSE,
           response: {
-            status: response.status,
-            headers: response.headers,
-            body: response.data,
+            status: localhostAppResponse.status,
+            headers: localhostAppResponse.headers,
+            rawBody: localhostAppResponse.data,
           },
-        }),
-      )
-      // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-    } catch (err: any) {
-      if (!err) {
-        B.error('[PublicHost Client]', `[${subdomain}]`, 'Unknown error occurred.')
+        }
+        ws.send(JSON.stringify(clientResponseMessage))
+      } catch (err) {
+        if (!(err instanceof AxiosError && err.response)) {
+          B.error('[PublicHost Client]', `[${subdomain}]`, `[${serverRequestMessage.id}]`, 'An unknown error occurred.')
+          const clientResponseMessage: ClientMessage.ResponseMessage = {
+            id: serverRequestMessage.id,
+            type: ClientMessage.Type.RESPONSE,
+            response: {
+              status: 500,
+              headers: {},
+              rawBody: '',
+            },
+          }
+          ws.send(JSON.stringify(clientResponseMessage))
 
-        return
+          return
+        }
+
+        B.warn(
+          '[PublicHost Client]',
+          `[${subdomain}]`,
+          `[${serverRequestMessage.id}]`,
+          `⬅️ Forwarding HTTP Response ${err.response.status ?? 500} to PublicHost Server.`,
+        )
+        B.debug(
+          '[PublicHost Client]',
+          `[${subdomain}]`,
+          `[${serverRequestMessage.id}]`,
+          `Error reponse body: ${err.response.data ? JSON.stringify(err.response.data) : err}`,
+        )
+
+        const clientResponseMessage: ClientMessage.ResponseMessage = {
+          id: serverRequestMessage.id,
+          type: ClientMessage.Type.RESPONSE,
+          response: {
+            status: err.response.status,
+            headers: err.response.headers ?? {},
+            rawBody: err.response.data,
+          },
+        }
+        ws.send(JSON.stringify(clientResponseMessage))
       }
-
-      B.warn(
-        '[PublicHost Client]',
-        `[${subdomain}]`,
-        `⬅️ Forwarding Localhost App HTTP ${err?.response?.status ?? 500} error response to PublicHost Server.`,
-      )
-      B.debug(err?.response?.data ? JSON.stringify(err?.response?.data) : err)
-      ws.send(
-        JSON.stringify({
-          type: ClientMessage.Type.RESPONSE,
-          response: {
-            status: err?.response?.status ?? 500,
-            headers: err?.response?.headers ?? {},
-            body: err?.response?.data ?? 'Internal Server Error',
-          },
-        }),
-      )
+    } catch (err) {
+      B.error('[PublicHost Client]', `[${subdomain}]`, 'An unknown error occurred.')
+      B.debug('[PublicHost Client]', `[${subdomain}]`, `Error: ${err}.`)
     }
   })
 
