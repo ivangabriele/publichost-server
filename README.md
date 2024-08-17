@@ -25,7 +25,7 @@
 
 ---
 
-# Why PublicHost?
+## Why PublicHost?
 
 Because [ngrok](https://ngrok.com) but open-source and free.
 
