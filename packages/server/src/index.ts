@@ -95,16 +95,17 @@ httpServer.on('upgrade', (request, socket, head) => {
 })
 
 koaRouter.all('(.*)', async (ctx, next) => {
+  const subdomain = ctx.host.split('.')[0]
+  const fullUrl = `${ctx.host}${ctx.req.url}`
+  B.log('[PublicHost Server]', `[${subdomain}]`, `⬅️ Incoming HTTP ${ctx.request.method} ${fullUrl}.`)
+
   if (ctx.host !== BASE_DOMAIN || !ctx.host.endsWith(`.${BASE_DOMAIN}`)) {
+    B.log('[PublicHost Server]', `[${subdomain}]`, '🚫 Invalid domain name. Sending 404.')
+
     await serveStaticFile(ctx, '404.html')
 
     return
   }
-
-  const fullUrl = `${ctx.host}${ctx.req.url}`
-  const subdomain = ctx.host.split('.')[0]
-
-  B.debug('[PublicHost Server]', `[${subdomain}]`, `⬅️ Incoming HTTP ${ctx.request.method} ${fullUrl}.`)
 
   const ws = CLIENTS_STORE.get(subdomain)
   if (!ws) {
