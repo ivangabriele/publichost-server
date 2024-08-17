@@ -1,6 +1,10 @@
-# PublicHost Server & Client
+<p align="center">
+  <img alt="FirePT Logo" height="128" src="https://raw.githubusercontent.com/ivangabriele/publichost/main/packages/server/public/logo.1.png" />
+</p>
+<h1 align="center">PublicHost</h1>
+<h3 align="center">Tunneling subdomains to your localhost applications.</h3>
 
-Tunneling subdomains to your localhost applications. Like [ngrok](https://ngrok.com) but open source and free.
+Like [ngrok](https://ngrok.com) but open-source and free.
 
 ---
 
@@ -9,9 +13,19 @@ Tunneling subdomains to your localhost applications. Like [ngrok](https://ngrok.
 
 ---
 
+## Features
+
+- [x] PublicHost Server
+  - [x] Basic API Key Authentication
+- [x] PublicHost Client
+  - [x] CLI commands
+  - [x] Node.js SDK
+
 ## How it works
 
-```mermaid
+**To be updated.**
+
+<!-- ```mermaid
 sequenceDiagram
     participant User as User Browser
     participant Server as PublicHost Server
@@ -24,4 +38,4 @@ sequenceDiagram
     App->>Client: 4. Local Application processes and sends response
     Client->>Server: 5. Forward response via WebSocket
     Server->>User: 6. HTTP Response (200 OK)
-```
+``` -->
