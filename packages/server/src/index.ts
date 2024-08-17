@@ -170,10 +170,7 @@ koaRouter.all('(.*)', async (ctx, next) => {
   })
 })
 
-koaApp
-  .use(koaRouter.routes())
-  .use(koaRouter.allowedMethods())
-  .use(serve(PUBLIC_PATH, { defer: true }))
+koaApp.use(koaRouter.routes()).use(koaRouter.allowedMethods()).use(serve(PUBLIC_PATH))
 
 httpServer.listen(PORT, () => {
   console.info('[PublicHost Server]', `Listening on port ${PORT}.`)
