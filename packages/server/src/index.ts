@@ -99,7 +99,7 @@ koaRouter.all('(.*)', async (ctx, next) => {
   const fullUrl = `${ctx.host}${ctx.req.url}`
   B.log('[PublicHost Server]', `[${subdomain}]`, `⬅️ Incoming HTTP ${ctx.request.method} ${fullUrl}.`)
 
-  if (ctx.host !== BASE_DOMAIN || !ctx.host.endsWith(`.${BASE_DOMAIN}`)) {
+  if (ctx.host !== BASE_DOMAIN && !ctx.host.endsWith(`.${BASE_DOMAIN}`)) {
     B.log('[PublicHost Server]', `[${subdomain}]`, '🚫 Invalid domain name. Sending 404.')
 
     await serveStaticFile(ctx, '404.html')
