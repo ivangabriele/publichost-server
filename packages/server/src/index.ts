@@ -17,7 +17,7 @@ const webSocketServer = new WebSocketServer({ noServer: true })
 
 const API_KEY = requireEnv('API_KEY')
 const BASE_DOMAIN = requireEnv('BASE_DOMAIN')
-const PORT = requireEnv('API_KEY')
+const PORT = requireEnv('PORT')
 
 webSocketServer.on('connection', (ws, request) => {
   B.debug('[PublicHost Server]', 'New PublicHost Client connection opened.')
