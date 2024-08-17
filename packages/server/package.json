@@ -18,7 +18,9 @@
     "@faker-js/faker": "8.4.1",
     "@koa/router": "13.0.0",
     "bhala": "3.0.4",
+    "esm-path": "1.0.1",
     "koa": "2.15.3",
+    "koa-send": "5.0.1",
     "ws": "8.18.0"
   },
   "optionalDependencies": {

@@ -7,31 +7,27 @@ import { WebSocketServer } from 'ws'
 
 import { registerClient } from './actions/registerClient.js'
 import { CLIENTS_STORE, SUBDOMAINS_STORE } from './stores.js'
+import { requireEnv } from './utils/requireEnv.js'
+import { serveStaticFile } from './utils/serveStaticFile.js'
 
 const koaApp = new Koa()
 const koaRouter = new KoaRouter()
 const httpServer = createServer(koaApp.callback())
 const webSocketServer = new WebSocketServer({ noServer: true })
 
-const { API_KEY, PORT } = process.env
-if (!API_KEY) {
-  B.error('[PublicHost Server]', '`API_KEY` env var is undefined.')
-  process.exit(1)
-}
-if (!PORT) {
-  B.error('[PublicHost Server]', '`PORT` env var is undefined.')
-  process.exit(1)
-}
+const API_KEY = requireEnv('API_KEY')
+const BASE_DOMAIN = requireEnv('BASE_DOMAIN')
+const PORT = requireEnv('API_KEY')
 
 webSocketServer.on('connection', (ws, request) => {
+  B.debug('[PublicHost Server]', 'New PublicHost Client connection opened.')
+
   if (!request.url) {
     B.error('[PublicHost Server]', '`request.url` is undefined.')
     ws.close(4000, 'Invalid request URL')
 
     return
   }
-
-  B.debug('[PublicHost Server]', 'New PublicHost Client connection opened.')
 
   if (request.headers['x-api-key'] !== API_KEY) {
     B.error('[PublicHost Server]', 'Invalid API key. Closing connection.')
@@ -99,7 +95,13 @@ httpServer.on('upgrade', (request, socket, head) => {
 })
 
 koaRouter.all('(.*)', async (ctx, next) => {
-  const fullUrl = `${ctx.protocol}://${ctx.host}${ctx.req.url}`
+  if (ctx.host !== BASE_DOMAIN || !ctx.host.endsWith(`.${BASE_DOMAIN}`)) {
+    await serveStaticFile(ctx, '404.html')
+
+    return
+  }
+
+  const fullUrl = `${ctx.host}${ctx.req.url}`
   const subdomain = ctx.host.split('.')[0]
 
   B.debug('[PublicHost Server]', `[${subdomain}]`, `⬅️ Incoming HTTP ${ctx.request.method} ${fullUrl}.`)
