@@ -1,6 +1,6 @@
 import type { IncomingMessage } from 'node:http'
 import { B } from 'bhala'
-import { WEBSOCKETS_CLIENT_MESSAGE_TYPE, WebSocketError } from 'publichost-common'
+import { ClientMessage, WebSocketError } from 'publichost-common'
 
 import type { WebSocket } from 'ws'
 import { registerClient } from '../actions/registerClient.js'
@@ -29,15 +29,15 @@ export async function handleWebSocketConnection(ws: WebSocket, request: Incoming
   B.debug('[PublicHost Server]', 'New PublicHost Client authorized.')
 
   ws.on('message', (rawMessage: string) => {
-    const message = JSON.parse(rawMessage)
+    const message = JSON.parse(rawMessage) as ClientMessage.Message
 
     try {
       switch (message.type) {
-        case WEBSOCKETS_CLIENT_MESSAGE_TYPE.REGISTER:
+        case ClientMessage.Type.REGISTER:
           registerClient(ws, request, message)
           break
 
-        case WEBSOCKETS_CLIENT_MESSAGE_TYPE.RESPONSE:
+        case ClientMessage.Type.RESPONSE:
           break
 
         default:

@@ -3,7 +3,7 @@
   "extends": ["@ivangabriele/biome-config"],
   "overrides": [
     {
-      "include": ["**/constants/**", "**/constants.js", "**/constants.ts"],
+      "include": ["**/constants/**", "**/constants.ts", "**/types.ts", "**/*.types.ts"],
       "linter": {
         "rules": {
           "style": {

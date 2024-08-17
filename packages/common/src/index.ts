@@ -1,12 +1,11 @@
-import { ClientMessageType, ServerMessageType } from './constants.js'
-
 import { WebSocketError } from './errors/WebSocketError.js'
 
-export {
-  ClientMessageType as WEBSOCKETS_CLIENT_MESSAGE_TYPE,
-  ServerMessageType as WEBSOCKETS_SERVER_MESSAGE_TYPE,
-  WebSocketError,
-}
+export { WebSocketError }
+
+import { ClientMessage } from './ClientMessage.types.js'
+import { ServerMessage } from './ServerMessage.types.js'
+
+export { ClientMessage, ServerMessage }
 
 import type { AnyObject } from './types.js'
 

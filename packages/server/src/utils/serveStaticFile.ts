@@ -14,7 +14,7 @@ export async function serveStaticFile(ctx: Context, publicPath: string, statusCo
     ctx.type = extname(filePath)
     ctx.body = content
   } catch (err) {
-    B.error('[PublicHost Server]', '[INTERNAL]', `Error while serving static file \`${publicPath}\`.`)
+    B.error('[PublicHost Server]', '[INTERNAL]', `Error while serving static file \`${publicPath}\`: \`${err}\`.`)
 
     ctx.status = 500
     ctx.body = 'Internal Server Error'

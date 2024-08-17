@@ -1,0 +1,25 @@
+name: E2E
+
+on: push
+
+jobs:
+  e2e:
+    name: E2E
+    if: ${{ !startsWith(github.ref, 'refs/heads/ci-release-v') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          cache: yarn
+          node-version: 22
+      - name: Install
+        run: yarn --immutable
+      - name: Setup E2E
+        run: |
+          yarn test:e2e:setup
+          sleep 5
+      - name: E2E
+        run: yarn test:e2e

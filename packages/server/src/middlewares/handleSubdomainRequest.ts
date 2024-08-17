@@ -1,6 +1,6 @@
 import { B } from 'bhala'
 import type { Context, Next } from 'koa'
-import { WEBSOCKETS_CLIENT_MESSAGE_TYPE, WEBSOCKETS_SERVER_MESSAGE_TYPE } from 'publichost-common'
+import { ClientMessage, ServerMessage } from 'publichost-common'
 
 import { CLIENTS_STORE } from '../stores.js'
 import { requireEnv } from '../utils/requireEnv.js'
@@ -50,7 +50,7 @@ export async function handleSubdomainRequest(ctx: Context, next: Next) {
 
     ws.send(
       JSON.stringify({
-        type: WEBSOCKETS_SERVER_MESSAGE_TYPE.REQUEST,
+        type: ServerMessage.Type.REQUEST,
         request: {
           method: ctx.method,
           headers: ctx.headers,
@@ -65,7 +65,7 @@ export async function handleSubdomainRequest(ctx: Context, next: Next) {
     ws.once('message', (data: string) => {
       try {
         const clientMessage = JSON.parse(data)
-        if (clientMessage?.type !== WEBSOCKETS_CLIENT_MESSAGE_TYPE.RESPONSE) {
+        if (clientMessage?.type !== ClientMessage.Type.RESPONSE) {
           return
         }
 

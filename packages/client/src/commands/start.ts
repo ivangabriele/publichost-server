@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { B } from 'bhala'
-import { WEBSOCKETS_CLIENT_MESSAGE_TYPE, WEBSOCKETS_SERVER_MESSAGE_TYPE } from 'publichost-common'
+import { ClientMessage, ServerMessage } from 'publichost-common'
 import { WebSocket } from 'ws'
 import { DEFAULT_START_OPTIONS } from '../constants.js'
 import { configManager } from '../libs/ConfigManager.js'
@@ -9,8 +9,12 @@ import type { StartOptions } from '../types.js'
 export function start(publicHostServerHost: string, subdomain: string, apiKey: string, options: Partial<StartOptions>) {
   const controlledOptions = { ...options, ...DEFAULT_START_OPTIONS }
   const { isHttps, localhostAppPort } = controlledOptions
-  const localhostAppBaseUrl = `http${isHttps ? 's' : ''}://localhost:${localhostAppPort}`
-  const webSocketUrl = `${process.env.IS_LOCAL_SERVER === 'true' ? 'ws' : 'wss'}://${publicHostServerHost}/${subdomain}`
+  const localhostAppBaseUrl =
+    process.env.IS_TEST === 'true'
+      ? 'https://jsonplaceholder.typicode.com'
+      : `http${isHttps ? 's' : ''}://localhost:${localhostAppPort}`
+  const webSocketScheme = process.env.IS_LOCAL_SERVER === 'true' || process.env.IS_TEST === 'true' ? 'ws' : 'wss'
+  const webSocketUrl = `${webSocketScheme}://${publicHostServerHost}/${subdomain}`
 
   const ws = new WebSocket(webSocketUrl, {
     headers: {
@@ -22,11 +26,11 @@ export function start(publicHostServerHost: string, subdomain: string, apiKey: s
     B.log(
       '[PublicHost Client]',
       `[${subdomain}]`,
-      `Connected to PublicHost Server on wss://${publicHostServerHost}.`,
+      `Connected to PublicHost Server on ${webSocketUrl}.`,
       'Registering subdomain...',
     )
 
-    ws.send(JSON.stringify({ type: WEBSOCKETS_CLIENT_MESSAGE_TYPE.REGISTER, subdomain }))
+    ws.send(JSON.stringify({ type: ClientMessage.Type.REGISTER, subdomain }))
   })
 
   ws.on('ping', () => {
@@ -39,9 +43,9 @@ export function start(publicHostServerHost: string, subdomain: string, apiKey: s
 
   ws.on('message', async (data: string) => {
     try {
-      const message = JSON.parse(data)
+      const message = JSON.parse(data) as ServerMessage.Message
       switch (message.type) {
-        case WEBSOCKETS_SERVER_MESSAGE_TYPE.REGISTERED: {
+        case ServerMessage.Type.REGISTERED: {
           B.success('[PublicHost Client]', `[${subdomain}]`, 'Subdomain registered.')
           B.info(
             '[PublicHost Client]',
@@ -52,16 +56,17 @@ export function start(publicHostServerHost: string, subdomain: string, apiKey: s
           return
         }
 
-        case WEBSOCKETS_SERVER_MESSAGE_TYPE.ERROR: {
+        case ServerMessage.Type.ERROR: {
           B.error('[PublicHost Client]', `[${subdomain}]`, `PublicHost Server sent an error: ${message.error}.`)
 
           return
         }
 
-        case WEBSOCKETS_SERVER_MESSAGE_TYPE.REQUEST:
+        case ServerMessage.Type.REQUEST:
           break
 
         default: {
+          // @ts-expect-error
           B.error('[PublicHost Client]', `[${subdomain}]`, `Invalid message type: ${message.type}.`)
 
           return
@@ -73,16 +78,19 @@ export function start(publicHostServerHost: string, subdomain: string, apiKey: s
       B.log(
         '[PublicHost Client]',
         `[${subdomain}]`,
-        `↔️ Forwarding HTTP ${request.method} ${request.url} from PublicHost Server to Localhost App.`,
+        `↔️ Forwarding HTTP ${message.request.method} ${message.request.url} from PublicHost Server to Localhost App.`,
+      )
+
+      const cleanHeaders = Object.fromEntries(
+        Object.entries(request.headers).filter(([key]) => !['host'].includes(key)),
       )
 
       const response = await axios({
         method: request.method,
         url: `${localhostAppBaseUrl}${request.url}`,
-        headers: request.headers,
+        headers: cleanHeaders,
         data: request.body,
       })
-
       B.log(
         '[PublicHost Client]',
         `[${subdomain}]`,
@@ -91,7 +99,7 @@ export function start(publicHostServerHost: string, subdomain: string, apiKey: s
 
       ws.send(
         JSON.stringify({
-          type: WEBSOCKETS_CLIENT_MESSAGE_TYPE.RESPONSE,
+          type: ClientMessage.Type.RESPONSE,
           response: {
             status: response.status,
             headers: response.headers,
@@ -112,9 +120,10 @@ export function start(publicHostServerHost: string, subdomain: string, apiKey: s
         `[${subdomain}]`,
         `⬅️ Forwarding Localhost App HTTP ${err?.response?.status ?? 500} error response to PublicHost Server.`,
       )
+      B.debug(err?.response?.data ? JSON.stringify(err?.response?.data) : err)
       ws.send(
         JSON.stringify({
-          type: WEBSOCKETS_CLIENT_MESSAGE_TYPE.RESPONSE,
+          type: ClientMessage.Type.RESPONSE,
           response: {
             status: err?.response?.status ?? 500,
             headers: err?.response?.headers ?? {},

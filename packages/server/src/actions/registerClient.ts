@@ -1,11 +1,11 @@
 import type { IncomingMessage } from 'node:http'
 import { B } from 'bhala'
-import { type AnyObject, WEBSOCKETS_SERVER_MESSAGE_TYPE, WebSocketError } from 'publichost-common'
+import { type ClientMessage, ServerMessage, WebSocketError } from 'publichost-common'
 import type { WebSocket } from 'ws'
 
 import { CLIENTS_STORE, SUBDOMAINS_STORE } from '../stores.js'
 
-export function registerClient(ws: WebSocket, _request: IncomingMessage, message: AnyObject) {
+export function registerClient(ws: WebSocket, _request: IncomingMessage, message: ClientMessage.RegisterMessage) {
   const { subdomain } = message
   if (!subdomain || typeof subdomain !== 'string') {
     throw new WebSocketError(`Invalid subdomain: \`${subdomain}\`.`)
@@ -39,5 +39,6 @@ export function registerClient(ws: WebSocket, _request: IncomingMessage, message
     }
   }, 30000)
 
-  ws.send(JSON.stringify({ type: WEBSOCKETS_SERVER_MESSAGE_TYPE.REGISTERED, subdomain }))
+  const answer: ServerMessage.RegisteredMessage = { type: ServerMessage.Type.REGISTERED, subdomain }
+  ws.send(JSON.stringify(answer))
 }
