@@ -11,7 +11,7 @@ const BASE_DOMAIN = requireEnv('BASE_DOMAIN')
 export async function handleSubdomainRequest(ctx: Context, next: Next) {
   const subdomain = ctx.host.split('.')[0]
   const fullUrl = `${ctx.host}${ctx.req.url}`
-  B.log('[PublicHost Server]', `[${subdomain}]`, `⬅️ Incoming HTTP ${ctx.request.method} ${fullUrl}.`)
+  B.log('[PublicHost Server]', `[${subdomain}]`, `⬅️ Incoming HTTP request: \`${ctx.request.method} ${fullUrl}\`.`)
 
   if (!ctx.host.endsWith(`.${BASE_DOMAIN}`)) {
     B.log('[PublicHost Server]', `[${subdomain}]`, '🚫 Invalid domain name. Sending 404.')

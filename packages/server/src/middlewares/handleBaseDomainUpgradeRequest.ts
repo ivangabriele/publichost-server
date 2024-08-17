@@ -10,6 +10,8 @@ export async function handleBaseDomainUpgradeRequest(
   socket: internal.Duplex,
   head: Buffer,
 ): Promise<void> {
+  B.debug('[PublicHost Server]', `Request URL: ${request.url}`)
+
   if (!request.url) {
     B.error('[PublicHost Server]', '`request.url` is undefined.')
     socket.destroy()
