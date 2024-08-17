@@ -2,10 +2,12 @@ import { createServer } from 'node:http'
 import KoaRouter from '@koa/router'
 import { B } from 'bhala'
 import Koa from 'koa'
+import serve from 'koa-static'
 import { WEBSOCKETS_CLIENT_MESSAGE_TYPE, WEBSOCKETS_SERVER_MESSAGE_TYPE, WebSocketError } from 'publichost-common'
 import { WebSocketServer } from 'ws'
 
 import { registerClient } from './actions/registerClient.js'
+import { PUBLIC_PATH } from './constants.js'
 import { CLIENTS_STORE, SUBDOMAINS_STORE } from './stores.js'
 import { requireEnv } from './utils/requireEnv.js'
 import { serveStaticFile } from './utils/serveStaticFile.js'
@@ -99,10 +101,8 @@ koaRouter.all('(.*)', async (ctx, next) => {
   const fullUrl = `${ctx.host}${ctx.req.url}`
   B.log('[PublicHost Server]', `[${subdomain}]`, `⬅️ Incoming HTTP ${ctx.request.method} ${fullUrl}.`)
 
-  if (ctx.host !== BASE_DOMAIN && ctx.url === '/') {
-    B.log('[PublicHost Server]', `[${subdomain}]`, '👋 Welcome page requested. Sending welcome page.')
-
-    await serveStaticFile(ctx, 'welcome.html')
+  if (ctx.host === BASE_DOMAIN) {
+    next()
 
     return
   }
@@ -170,7 +170,10 @@ koaRouter.all('(.*)', async (ctx, next) => {
   })
 })
 
-koaApp.use(koaRouter.routes()).use(koaRouter.allowedMethods())
+koaApp
+  .use(koaRouter.routes())
+  .use(koaRouter.allowedMethods())
+  .use(serve(PUBLIC_PATH, { defer: true }))
 
 httpServer.listen(PORT, () => {
   console.info('[PublicHost Server]', `Listening on port ${PORT}.`)
