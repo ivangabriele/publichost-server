@@ -43,8 +43,7 @@ export async function handleSubdomainRequest(ctx: Context, next: Next) {
         method: ctx.method,
         headers: ctx.headers,
         url: ctx.url,
-        // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-        body: (ctx.request as any).body,
+        body: ctx.request.body,
       },
     }),
   )
