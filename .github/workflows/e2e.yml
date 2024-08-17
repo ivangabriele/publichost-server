@@ -19,7 +19,7 @@ jobs:
         run: yarn --immutable
       - name: Setup E2E
         run: |
-          yarn test:e2e:setup
-          sleep 5
+          yarn test:e2e:setup &
+          sleep 10
       - name: E2E
         run: yarn test:e2e
