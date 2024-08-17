@@ -110,7 +110,7 @@ koaRouter.all('(.*)', async (ctx, next) => {
   if (!ctx.host.endsWith(`.${BASE_DOMAIN}`)) {
     B.log('[PublicHost Server]', `[${subdomain}]`, '🚫 Invalid domain name. Sending 404.')
 
-    await serveStaticFile(ctx, '404.html')
+    await serveStaticFile(ctx, '404.html', 400)
 
     return
   }
