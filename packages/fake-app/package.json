@@ -1,0 +1,17 @@
+{
+  "name": "publichost-fake-app",
+  "description": "Fake localhost app to test PublicHost server and client.",
+  "license": "AGPL-3.0",
+  "version": "1.0.3",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "22"
+  },
+  "scripts": {
+    "dev": "node --loader ts-node/esm --watch ./src/index.ts"
+  },
+  "dependencies": {
+    "bhala": "3.0.4"
+  }
+}
