@@ -3,18 +3,18 @@ import { B } from 'bhala'
 import { WEBSOCKETS_CLIENT_MESSAGE_TYPE, WEBSOCKETS_SERVER_MESSAGE_TYPE } from 'publichost-common'
 import { WebSocket } from 'ws'
 import { DEFAULT_START_OPTIONS } from '../constants.js'
-import { config } from '../libs/Config.js'
+import { configManager } from '../libs/ConfigManager.js'
+import type { StartOptions } from '../types.js'
 
-/**
- * @param {string} publicHostServerHost
- * @param {string} subdomain
- * @param {Partial<import('../types.ts').StartOptions>} options
- */
-export function start(publicHostServerHost, subdomain, options) {
+export function start(publicHostServerHost: string, subdomain: string, apiKey: string, options: Partial<StartOptions>) {
   const controlledOptions = { ...options, ...DEFAULT_START_OPTIONS }
   const { isHttps, localhostAppPort } = controlledOptions
   const localhostAppBaseUrl = `http${isHttps ? 's' : ''}://localhost:${localhostAppPort}`
-  const ws = new WebSocket(`wss://${publicHostServerHost}/${subdomain}`)
+  const ws = new WebSocket(`wss://${publicHostServerHost}/${subdomain}`, {
+    headers: {
+      'x-api-key': apiKey,
+    },
+  })
 
   ws.on('open', () => {
     B.log(
@@ -120,7 +120,7 @@ export function start(publicHostServerHost, subdomain, options) {
 
     setTimeout(() => {
       B.log('[PublicHost Client]', `[${subdomain}]`, 'Reconnecting to PublicHost Server...')
-      start(publicHostServerHost, subdomain, options)
+      start(publicHostServerHost, subdomain, apiKey, options)
     }, 5000)
   })
 
@@ -131,7 +131,7 @@ export function start(publicHostServerHost, subdomain, options) {
 
 export function startFromConfig() {
   const workspacePath = process.cwd()
-  const workspaceConfig = config.getWorkspaceConfig(workspacePath)
+  const workspaceConfig = configManager.getWorkspaceConfig(workspacePath)
   if (!workspaceConfig) {
     B.error('[PublicHost Client]', `No configuration found for the current workspace: ${workspacePath}.`)
     B.info('[PublicHost Client]', 'Run `ph init` to initialize a new configuration for this workspace.')
@@ -139,7 +139,7 @@ export function startFromConfig() {
     return
   }
 
-  const { options, publicHostServerHost, subdomain } = workspaceConfig
+  const { apiKey, options, publicHostServerHost, subdomain } = workspaceConfig
 
-  start(publicHostServerHost, subdomain, options)
+  start(publicHostServerHost, subdomain, apiKey, options)
 }

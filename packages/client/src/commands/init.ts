@@ -1,19 +1,29 @@
+import { B } from 'bhala'
 import { DEFAULT_START_OPTIONS } from '../constants.js'
-import { config } from '../libs/Config.js'
+import { configManager } from '../libs/ConfigManager.js'
+import type { InitOptions } from '../types.js'
 
-/**
- * @param {string} publicHostServerHost
- * @param {string} subdomain
- * @param {Partial<import('../types.ts').StartOptions>} options
- */
-export function init(publicHostServerHost, subdomain, options) {
-  const controlledOptions = { ...options, ...DEFAULT_START_OPTIONS }
-  const workspacePath = process.cwd()
+export function init(
+  publicHostServerHost: string,
+  subdomain: string,
+  apiKey: string,
+  { isHttps, port: localhostAppPort, workspacePath }: InitOptions,
+) {
+  const controlledStartOptions = {
+    ...{
+      isHttps,
+      localhostAppPort,
+    },
+    ...DEFAULT_START_OPTIONS,
+  }
 
-  config.setWorkspaceConfig({
-    options: controlledOptions,
+  configManager.setWorkspaceConfig({
+    apiKey,
+    options: controlledStartOptions,
     publicHostServerHost,
     subdomain,
     workspacePath,
   })
+
+  B.success('[PublicHost Client]', `[${subdomain}]`, `Subdomain linked to workspace ${workspacePath}.`)
 }

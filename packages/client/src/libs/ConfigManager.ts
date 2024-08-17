@@ -2,9 +2,9 @@ import { homedir } from 'node:os'
 import { join } from 'node:path'
 import { pathExistsSync, readJSONSync, writeJSONSync } from 'fs-extra/esm'
 import { CONFIG_FILE_NAME, INITIAL_CONFIG } from '../constants.js'
-import type { WorkspaceConfig } from '../types.js'
+import type { Config, WorkspaceConfig } from '../types.js'
 
-class Config {
+class ConfigManager {
   configPath: string
 
   constructor() {
@@ -16,24 +16,26 @@ class Config {
     const configEntry = Object.entries(config.subdomains).find(
       ([, workspaceConfig]) => workspaceConfig.workspacePath === workspacePath,
     )
-    if (!configEntry) {
-      return undefined
+    if (configEntry) {
+      return configEntry[1]
+    }
+    if (workspacePath.includes('/')) {
+      const parentDirectory = workspacePath.split('/').slice(0, -1).join('/')
+
+      return this.getWorkspaceConfig(parentDirectory)
     }
 
-    return configEntry[1]
+    return undefined
   }
 
-  /**
-   * @param {import('../types.ts').WorkspaceConfig} newOrNextWorkspaceConfig
-   */
-  setWorkspaceConfig(newOrNextWorkspaceConfig) {
+  setWorkspaceConfig(newOrNextWorkspaceConfig: WorkspaceConfig) {
     const config = { ...this.#load() }
     config.subdomains[newOrNextWorkspaceConfig.subdomain] = newOrNextWorkspaceConfig
 
     this.#save(config)
   }
 
-  #load(): import('../types.ts').Config {
+  #load(): Config {
     if (!pathExistsSync(this.configPath)) {
       writeJSONSync(this.configPath, INITIAL_CONFIG, { spaces: 2 })
     }
@@ -41,9 +43,9 @@ class Config {
     return readJSONSync(this.configPath)
   }
 
-  #save(nextConfig: import('../types.ts').Config) {
+  #save(nextConfig: Config) {
     writeJSONSync(this.configPath, nextConfig, { spaces: 2 })
   }
 }
 
-export const config = new Config()
+export const configManager = new ConfigManager()
