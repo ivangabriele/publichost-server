@@ -7,7 +7,7 @@ import { configManager } from '../libs/ConfigManager.js'
 import type { StartOptions } from '../types.js'
 
 export function start(publicHostServerHost: string, subdomain: string, apiKey: string, options: Partial<StartOptions>) {
-  const controlledOptions = { ...options, ...DEFAULT_START_OPTIONS }
+  const controlledOptions = { ...DEFAULT_START_OPTIONS, ...options }
   const { isHttps, localhostAppPort } = controlledOptions
   const localhostAppBaseUrl =
     process.env.IS_TEST === 'true'
