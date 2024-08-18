@@ -86,53 +86,35 @@ npm install -E publichost
 #### Koa Example
 
 ```ts
-import Koa from "koa";
+import Koa from 'koa'
 
-const {
-  API_KEY,
-  PORT,
-  PUBLICHOST_API_KEY,
-  PUBLICHOST_HOST,
-  PUBLICHOST_SUBDOMAIN,
-} = process.env;
+const { PORT, PUBLICHOST_API_KEY, PUBLICHOST_HOST, PUBLICHOST_SUBDOMAIN } = process.env
 
-const app = new Koa();
+const app = new Koa()
 
 app.listen(PORT, () => {
-  console.info(
-    "[My Amazing Localhost App]",
-    `Server listening on port ${PORT}.`,
-  );
+  console.info('[My Amazing Localhost App]', `Server listening on port ${PORT}.`)
 
   startPublicHost(PUBLICHOST_HOST, PUBLICHOST_SUBDOMAIN, PUBLICHOST_API_KEY, {
     localhostAppPort: PORT,
-  });
-});
+  })
+})
 ```
 
 ### Express Example
 
 ```ts
-import express from "express";
+import express from 'express'
 
-const {
-  API_KEY,
-  PORT,
-  PUBLICHOST_API_KEY,
-  PUBLICHOST_HOST,
-  PUBLICHOST_SUBDOMAIN,
-} = process.env;
+const { PORT, PUBLICHOST_API_KEY, PUBLICHOST_HOST, PUBLICHOST_SUBDOMAIN } = process.env
 
-const app = express();
+const app = express()
 
 app.listen(PORT, () => {
-  console.info(
-    "[My Amazing Localhost App]",
-    `Server listening on port ${PORT}.`,
-  );
+  console.info('[My Amazing Localhost App]', `Server listening on port ${PORT}.`)
 
   startPublicHost(PUBLICHOST_HOST, PUBLICHOST_SUBDOMAIN, PUBLICHOST_API_KEY, {
     localhostAppPort: PORT,
-  });
-});
+  })
+})
 ```
