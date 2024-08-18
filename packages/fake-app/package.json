@@ -2,7 +2,7 @@
   "name": "publichost-fake-app",
   "description": "Fake localhost app to test PublicHost server and client.",
   "license": "AGPL-3.0",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "private": true,
   "type": "module",
   "engines": {

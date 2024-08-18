@@ -1,3 +1,9 @@
+## [1.1.2](https://github.com/ivangabriele/publichost/compare/v1.1.1...v1.1.2) (2024-08-18)
+
+### Bug Fixes
+
+- **client:** re-order default start options before provided ones ([0622209](https://github.com/ivangabriele/publichost/commit/062220900da98a660f2dabf7a0b90241e8aca891))
+
 ## [1.1.1](https://github.com/ivangabriele/publichost/compare/v1.1.0...v1.1.1) (2024-08-18)
 
 ### Documentation
