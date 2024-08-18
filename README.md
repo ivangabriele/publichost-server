@@ -20,8 +20,15 @@
 
 ---
 
-> [!NOTE]  
-> This is a work in progress.
+- [Why PublicHost?](#why-publichost)
+- [Features](#features)
+- [How it works](#how-it-works)
+- [Installation](#installation)
+  - [CLI](#cli)
+  - [Usage](#usage)
+  - [Node.js SDK](#nodejs-sdk)
+    - [Koa Example](#koa-example)
+  - [Express Example](#express-example)
 
 ---
 
@@ -55,3 +62,77 @@ sequenceDiagram
     Client->>Server: 5. Forward response via WebSocket
     Server->>User: 6. HTTP Response (200 OK)
 ``` -->
+
+## Installation
+
+### CLI
+
+```sh
+npm install -g publichost
+```
+
+### Usage
+
+```sh
+ph --help
+```
+
+### Node.js SDK
+
+```sh
+npm install -E publichost
+```
+
+#### Koa Example
+
+```ts
+import Koa from "koa";
+
+const {
+  API_KEY,
+  PORT,
+  PUBLICHOST_API_KEY,
+  PUBLICHOST_HOST,
+  PUBLICHOST_SUBDOMAIN,
+} = process.env;
+
+const app = new Koa();
+
+app.listen(PORT, () => {
+  console.info(
+    "[My Amazing Localhost App]",
+    `Server listening on port ${PORT}.`,
+  );
+
+  startPublicHost(PUBLICHOST_HOST, PUBLICHOST_SUBDOMAIN, PUBLICHOST_API_KEY, {
+    localhostAppPort: PORT,
+  });
+});
+```
+
+### Express Example
+
+```ts
+import express from "express";
+
+const {
+  API_KEY,
+  PORT,
+  PUBLICHOST_API_KEY,
+  PUBLICHOST_HOST,
+  PUBLICHOST_SUBDOMAIN,
+} = process.env;
+
+const app = express();
+
+app.listen(PORT, () => {
+  console.info(
+    "[My Amazing Localhost App]",
+    `Server listening on port ${PORT}.`,
+  );
+
+  startPublicHost(PUBLICHOST_HOST, PUBLICHOST_SUBDOMAIN, PUBLICHOST_API_KEY, {
+    localhostAppPort: PORT,
+  });
+});
+```
