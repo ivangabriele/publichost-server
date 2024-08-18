@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/ivangabriele/publichost/compare/v1.1.0...v1.1.1) (2024-08-18)
+
+### Documentation
+
+- **readme:** add NPM badge ([b0ad4e5](https://github.com/ivangabriele/publichost/commit/b0ad4e5accc00ff18473c017343b6c3d6dfbb107))
+- **readme:** fix typo ([e358854](https://github.com/ivangabriele/publichost/commit/e358854c4b999115018800ca75325884cd4bfaef))
+
 ## [1.1.0](https://github.com/ivangabriele/publichost/compare/v1.0.3...v1.1.0) (2024-08-17)
 
 ### Features

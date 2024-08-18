@@ -13,4 +13,4 @@ export const DEFAULT_START_OPTIONS: StartOptions = {
   localhostAppPort: DEFAULT_CLIENT_PORT,
 }
 
-export const VERSION = '0.0.0'
+export const VERSION = '1.1.1'
