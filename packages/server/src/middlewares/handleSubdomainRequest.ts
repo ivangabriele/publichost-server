@@ -92,8 +92,6 @@ async function waitForClientResponse(requestId: string, subdomain: string, ws: W
         ctx.set(clientResponseMessage.response.headers)
         ctx.body = clientResponseMessage.response.rawBody
 
-        // PENDING_REQUESTS_STORE.delete(clientMessage.id)
-
         B.log(
           '[PublicHost Server]',
           `[${subdomain}]`,
@@ -102,8 +100,16 @@ async function waitForClientResponse(requestId: string, subdomain: string, ws: W
         )
 
         resolve(undefined)
+
+        setTimeout(() => {
+          PENDING_REQUESTS_STORE.delete(clientMessage.id)
+        }, 1000)
       } catch (err) {
         reject(err)
+
+        setTimeout(() => {
+          PENDING_REQUESTS_STORE.delete(requestId)
+        }, 1000)
       }
     }
 
@@ -111,10 +117,18 @@ async function waitForClientResponse(requestId: string, subdomain: string, ws: W
 
     ws.on('close', () => {
       reject(new Error('WebSocket connection closed before response was received.'))
+
+      setTimeout(() => {
+        PENDING_REQUESTS_STORE.delete(requestId)
+      }, 1000)
     })
 
     ws.on('error', (err) => {
       reject(err)
+
+      setTimeout(() => {
+        PENDING_REQUESTS_STORE.delete(requestId)
+      }, 1000)
     })
   })
 }
