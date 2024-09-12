@@ -40,7 +40,7 @@
     "@swc/core": "1.7.26",
     "@swc/jest": "0.2.36",
     "@types/jest": "29.5.13",
-    "concurrently": "8.2.2",
+    "concurrently": "9.0.1",
     "dotenv-cli": "7.4.2",
     "execa": "9.3.1",
     "husky": "9.1.6",
