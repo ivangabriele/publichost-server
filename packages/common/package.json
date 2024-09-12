@@ -15,6 +15,6 @@
     "test:type": "tsc"
   },
   "devDependencies": {
-    "@types/node": "22.3.0"
+    "@types/node": "22.5.4"
   }
 }
